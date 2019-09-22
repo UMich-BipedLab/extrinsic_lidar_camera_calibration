@@ -68,4 +68,4 @@ For the method GL_1-R, five sets of estimated LiDAR vertices for each target hav
 
 ## Citations (coming strong in a week)
 The  Improvements to Target-Based 3D LiDAR to Camera Calibration is described in: 
-*Jiunn-Kai Huang, Maani Ghaffari, Ross Hartley, Lu Gan, Ryan M. Eustice and Jessy W. Grizzle “LiDARTag: A Real-Time Fiducial Tag using Point Clouds” (under review)
+
