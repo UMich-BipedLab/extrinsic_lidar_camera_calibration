@@ -23,8 +23,8 @@ Using the obtained transformation, LiDAR points are mapped onto a semantically s
 A calibration result is not usable if it has few degrees of rotation error and a few percent of translation error.
 The below shows that a calibration result with little disturbance from the well-aigned image.
 
-<img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="320"> 
-<img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="320">
+<img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="640"> 
+<img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="640">
 
 # Why this package? (coming strong in a week)
 
