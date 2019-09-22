@@ -16,13 +16,13 @@ The homogeneous transformation between a LiDAR and monocular camera is required 
 
 ## Quick View
 Using the obtained transformation, LiDAR points are mapped onto a semantically segmented image. Each point is associated with the label of a pixel. The road is marked as white; static objects such buildings as orange; the grass as yellow-green, and dark green indicates trees.
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/semanticImg.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/semanticPC3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/semanticImg.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/semanticPC3.png" width="640">
 
 # Why important? 
 A calibration result is not usable if it has few degrees of rotation error and a few percent of translation error.
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/disturbance.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/undisturbance.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="640">
 
 # Why this package? (coming strong in a week)
 
@@ -42,22 +42,22 @@ TODO
 TODO
 
 # Qualitative results
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test1_3.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test2_3.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test3_3.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test4_3.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test5_3.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test6_3.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/test7_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test1_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test2_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test3_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test4_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test5_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test6_3.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/test7_3.png" width="640">
 
 # Quantitative results
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v1-2.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v2-2.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v3-2.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v4-2.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v5-2.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v6-2.png" width="640">
-<img src="https://github.com/brucejk/LiDARTag/blob/master/figure/v7-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v1-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v2-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v3-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v4-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v5-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v6-2.png" width="640">
+<img src="https://github.com/brucejk/extrinsic_lidar_camera_calibration/blob/master/figure/v7-2.png" width="640">
 
 ## Citations (coming strong in a week)
 The  Improvements to Target-Based 3D LiDAR to Camera Calibration is described in: 
