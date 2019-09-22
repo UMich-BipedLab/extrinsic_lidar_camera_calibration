@@ -16,6 +16,8 @@ The homogeneous transformation between a LiDAR and monocular camera is required 
 
 ## Quick View
 Using the obtained transformation, LiDAR points are mapped onto a semantically segmented image. Each point is associated with the label of a pixel. The road is marked as white; static objects such buildings as orange; the grass as yellow-green, and dark green indicates trees.
+
+
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/semanticImg.png" width="640">
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/semanticPC3.png" width="640">
 
@@ -44,6 +46,8 @@ TODO
 
 # Qualitative results
 For the method GL_1-R trained on S_1, the LiDAR point cloud has been projected into the image plane for the other data sets and marked in green. The red circles highlight various poles, door edges, desk legs, monitors, and sidewalk curbs where the quality of the alignment can be best judged. The reader may find other areas of interest. Enlarge in your browser for best viewing. 
+
+
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/test1_3.png" width="640">
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/test2_3.png" width="640">
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/test3_3.png" width="640">
