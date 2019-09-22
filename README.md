@@ -26,7 +26,7 @@ The below shows that a calibration result with little disturbance from the well-
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="640"> 
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="640">
 
-# Why this package? (coming strong in a week)
+## Why this package? (coming strong in a week)
 
 ## Overall pipeline (coming strong in a week)
 
@@ -36,6 +36,12 @@ https://www.brucerobot.com/
 
 ## Installation (coming strong in a week)
 TODO
+
+## Dataset 
+Please download point cloud mat files from [here](https://drive.google.com/drive/folders/1rI3vPvPOJ1ib4i1LMqw66habZEf4SwEr?usp=sharing) and put them into LiDARTag_data folder.
+
+Please downlaod bagfiles from [here](https://drive.google.com/drive/folders/1qawEuUBsC2gQJsHejLEuga2nhERKWRa5?usp=sharing) and put them into bagfiles folder.
+
 
 ## Parameters (coming strong in a week)
 TODO
