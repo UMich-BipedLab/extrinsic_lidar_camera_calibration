@@ -1,8 +1,7 @@
 # extrinsic_lidar_camera_calibration
 ## Overview
-This is a packagt for extrinsic calibration between a 3D LiDAR and a camera, describe in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration.
+This is a packagt for extrinsic calibration between a 3D LiDAR and a camera, describe in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration. We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, which we use images corners as ground truth to evaluate our accuracy of projection.
 * [note] ALL the code are still on the dev branch. Everything will be cleaned up and well-documented with in a week. To run the testing code, please checkout to the dev branch and the put the test files in folders and the change the two paths in the main.m and then hit run!
-* We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, which we use images corners as ground truth to evaluate our accuracy of projection.
 
 * Author: Bruce JK Huang and Jessy W. Grizzle
 * Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
@@ -17,14 +16,14 @@ The homogeneous transformation between a LiDAR and monocular camera is required 
 ## Quick View
 Using the obtained transformation, LiDAR points are mapped onto a semantically segmented image. Each point is associated with the label of a pixel. The road is marked as white; static objects such buildings as orange; the grass as yellow-green, and dark green indicates trees.
 
-
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/semanticImg.png" width="640">
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/semanticPC3.png" width="640">
 
 # Why important? 
 A calibration result is not usable if it has few degrees of rotation error and a few percent of translation error.
-The left shows that a calibration result with little disturbance from the right image.
-<img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="320">
+The below shows that a calibration result with little disturbance from the well-aigned image.
+
+<img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="320"> 
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="320">
 
 # Why this package? (coming strong in a week)
@@ -58,6 +57,7 @@ For the method GL_1-R trained on S_1, the LiDAR point cloud has been projected i
 
 # Quantitative results
 For the method GL_1-R, five sets of estimated LiDAR vertices for each target have been projected into the image plane and marked in green, while the target's point cloud has been marked in red. Blowing up the image allows the numbers reported in the table to be visualized. The vertices are key.
+
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/v1-2.png" width="640">
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/v2-2.png" width="640">
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/v3-2.png" width="640">
