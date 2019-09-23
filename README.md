@@ -1,7 +1,7 @@
 # extrinsic_lidar_camera_calibration
 ## Overview
 This is a packagt for extrinsic calibration between a 3D LiDAR and a camera, describe in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration. We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, which we use images corners as ground truth to evaluate our accuracy of projection.
-* [note] ALL the code are still on the dev branch. Everything will be cleaned up and well-documented with in a week. To run the testing code, please checkout to the dev branch and the put the test files in folders and the change the two paths in the main.m and then hit run!
+**[NOTE]** ALL the code are still on the dev branch. Everything will be cleaned up and well-documented with in a week. To run the testing code, please checkout to the dev branch and the put the test files in folders and the change the two paths in the main.m and then hit run!
 
 * Author: Bruce JK Huang and Jessy W. Grizzle
 * Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
@@ -27,15 +27,20 @@ The below shows that a calibration result with little disturbance from the well-
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="640">
 
 ## Why this package? (coming strong in a week)
+TODO
+
 
 ## Overall pipeline (coming strong in a week)
+TODO
 
 
 ## Presentation and Video (coming strong in a week)
 https://www.brucerobot.com/
 
+
 ## Installation (coming strong in a week)
 TODO
+
 
 ## Dataset 
 Please download point cloud mat files from [here](https://drive.google.com/drive/folders/1rI3vPvPOJ1ib4i1LMqw66habZEf4SwEr?usp=sharing) and put them into LiDARTag_data folder.
@@ -43,11 +48,18 @@ Please download point cloud mat files from [here](https://drive.google.com/drive
 Please downlaod bagfiles from [here](https://drive.google.com/drive/folders/1qawEuUBsC2gQJsHejLEuga2nhERKWRa5?usp=sharing) and put them into bagfiles folder.
 
 
+## Running
+ALL the code are still on the dev branch. Everything will be cleaned up, well-documented merge to master branch by 10/1/2019. To run the testing code, please checkout to the dev branch and the put the dataset in the two folders mentioned above and then go to the main.m and then hit run!
+(if you happen to change the name of the folder, please change the [path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/320a56c0e751453f1c09fef8146775788c27f5fe/main.m#L61) in the main.m as well)
+
+
 ## Parameters (coming strong in a week)
 TODO
 
+
 ## Examples (coming strong in a week)
 TODO
+
 
 # Qualitative results
 For the method GL_1-R trained on S_1, the LiDAR point cloud has been projected into the image plane for the other data sets and marked in green. The red circles highlight various poles, door edges, desk legs, monitors, and sidewalk curbs where the quality of the alignment can be best judged. The reader may find other areas of interest. Enlarge in your browser for best viewing. 
