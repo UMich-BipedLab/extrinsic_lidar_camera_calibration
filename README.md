@@ -1,14 +1,14 @@
 # extrinsic_lidar_camera_calibration
 ## Overview
-This is a packagt for extrinsic calibration between a 3D LiDAR and a camera, describe in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration. We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, which we use images corners as ground truth to evaluate our accuracy of projection.
-* [note] ALL the code are still on the dev branch. Everything will be cleaned up and well-documented with in a week. To run the testing code, please checkout to the dev branch and the put the test files in folders and the change the two paths in the main.m and then hit run!
+This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration. We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
+* [note] ALL the code is still on the dev branch. Everything will be cleaned up and well-documented within a week or so. To run the testing code, please checkout the dev branch, place the test datasets in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/80a504d057bc2926b0783dc3f0a137f0d83db981/main.m#L61) in main.m, and then hit run!
 
-* Author: Bruce JK Huang and Jessy W. Grizzle
+* Authors: Bruce JK Huang and Jessy W. Grizzle
 * Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
 * Affiliation: [The Biped Lab](https://www.biped.solutions/), the University of Michigan
 
 This package has been tested under MATLAB 2019a and Ubuntu 16.04.
-More detailed introduction will be updated in a week. Sorry for the inconvenient!
+More detailed introduction will be updated in a week. Sorry for the inconvenience!
 
 ## Abstract
 The homogeneous transformation between a LiDAR and monocular camera is required for sensor fusion tasks, such as SLAM. While determining such a transformation is not considered glamorous in any sense of the word, it is nonetheless crucial for many modern autonomous systems. Indeed, an error of a few degrees in rotation or a few percent in translation can lead to 20 cm translation errors at a distance of 5 m when overlaying a LiDAR image on a camera image. The biggest impediments to determining the transformation accurately are the relative sparsity of LiDAR point clouds and systematic errors in their distance measurements. This paper proposes (1) the use of targets of known dimension and geometry to ameliorate target pose estimation in face of the quantization and systematic errors inherent in a LiDAR image of a target, and (2) a fitting method for the LiDAR to monocular camera transformation that fundamentally assumes the camera image data is the most accurate information in one's possession. 
