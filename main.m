@@ -94,7 +94,7 @@ training_bag = bag_with_tag_list(bag_training_indices);
 % get validation indices
 bag_verification_indices = randi(length(bag_with_tag_list), 1, num_verification);
 % make sure they are not the same and not consists of undesire index
-while length(unique(bag_verification_indices)) ~=  length(bag_verification_indices) || ...
+while length(unique(bag_verification_indices)) ~=  length(bag_verification_indices) || ...`
       any(ismember(bag_verification_indices, skip_indices)) || ...
       any(ismember(bag_verification_indices, bag_training_indices)) 
    bag_verification_indices = randi(length(bag_with_tag_list), 1, num_verification);

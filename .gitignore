@@ -1,0 +1,6 @@
+*.bag
+*.mat
+*.m~
+ctags
+ctags_file
+

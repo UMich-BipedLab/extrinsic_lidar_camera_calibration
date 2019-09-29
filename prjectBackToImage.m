@@ -26,5 +26,6 @@ function prjectBackToImage(image_handle, P, X, marker_size , marker_color, legen
     hold(image_handle, 'off');
     if display
         set(get(image_handle,'parent'),'visible','on');% show the current axes
+        axis 'equal'
     end
 end

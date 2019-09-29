@@ -12,5 +12,6 @@ function showLinedLiDARTag(image_hadle, LiDARTag, display)
     
     if display
         set(get(image_hadle,'parent'),'visible','on');% show the current axes
+        axis 'equal'
     end
 end

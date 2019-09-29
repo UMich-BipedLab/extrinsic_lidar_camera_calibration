@@ -10,5 +10,6 @@ function showLinedAprilTag(fig_handle, AprilTag_corners, AprilTag_corners_lines,
     
     if display
         set(get(fig_handle,'parent'),'visible','on');% show the current axes
+        axis 'equal'
     end
 end
