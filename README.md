@@ -4,7 +4,6 @@ This is a package for extrinsic calibration between a 3D LiDAR and a camera, des
 
 
 **[IMPORTANT note]**
-
 ALL the code is still on the _dev branch_. Everything will be cleaned up and well-documented within a week or so (10/8 at latest). To run the testing code, please checkout the dev branch, place the test datasets in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/80a504d057bc2926b0783dc3f0a137f0d83db981/main.m#L61) in main.m, and then hit run!
 
 * Authors: Bruce JK Huang and Jessy W. Grizzle
