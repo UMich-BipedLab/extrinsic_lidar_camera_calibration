@@ -60,17 +60,17 @@ Please downlaod bagfiles from [here](https://drive.google.com/drive/folders/1qaw
 **[quick start]** To run the testing code, please clone this repo, place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/main.m#L43) in main.m, and then hit run!
 
 **[Dataset structure]**
-Put _ALL information of datasets_ into [getBagData.m] (https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). 
+Put _ALL information of datasets_ into [getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). 
 This funciton returns two data structure: TestData and BagData.
 - TestData contains bagfile and pc_file, where bagfile is the name of the bagfile and pc_file is mat files of _FULL_ scan of point cloud.
 - BagData contatins: 
-                    -- bagfile: name of the bagfile
-                    -- num_tag: how many tags in this dataset
-                    -- lidar_target
-                       --- pc_file: the name of the mat file of this target of point cloud
-                       --- tag_size: size of this target
-                    -- camera_target
-                      --- corners: corner coordinates of the camera targets
+  - bagfile: name of the bagfile
+  - num_tag: how many tags in this dataset
+  - lidar_target
+    - pc_file: the name of the mat file of this target of point cloud
+    - tag_size: size of this target
+  - camera_target
+    - corners: corner coordinates of the camera targets
 
 ## Important Parameters (coming strong in a week)
 TODO
