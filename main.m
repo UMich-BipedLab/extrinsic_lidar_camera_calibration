@@ -1,123 +1,146 @@
 clc, clear, close all
-
-%%% functions
-num_tag = 2; % how many tags in the scene
-skip = 0; 
-display = 1; %% show numerical results
-verification_flag = 1;
-correspondance_per_pose = 4;
-method = "4 points";
-
-
-%%% parameters for optimization
-num_alternative_opt = 4; % how many rounds of alternative optimization (4)
-num_LiDARTag_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
-num_scan = 3; % how many scans accumulated to optimize one  LiDARTag pose (3)
-
-opt.rpy_init = [45 2 3];
-opt.T_init = [2, 0, 0];
-opt.H_init = eye(4);
-opt.method = "Constraint Customize"; %% will add more later on
-opt.UseCentroid = 1;
-
-%%% training and validation
-num_training = 1; %%% 2
-num_verification = 7; % use how many different data to verify the calibration result
-
-%%% target size
-% big 
-params.tag_size_biggest = 0.8051;
-params.target_len_biggest = 0.8051;
-
-% small
-params.tag_size_small = 0.158;
-params.target_len_small = 0.158;
-
-% meduim
-params.tag_size_medium = 0.225;
-params.target_len_medium = 0.225;
-
-%%% bag selection (training and validation)              
-bag_with_tag_list  = ["3Tags-OldLiDAR.bag", "lab2-closer.bag", "lab_angled.bag" ...
-             "lab3-closer-cleaner.bag", "lab4-closer-cleaner.bag", "lab5-closer-cleaner.bag", ...
-             "lab6-closer-cleaner.bag", "lab7-closer-cleaner.bag", "lab8-closer-cleaner.bag", ...
-             "wavefield3-tag.bag", "wavefield5-tag.bag"];
-         
-skip_indices = [1, 2, 3];
-num_verification = min(size(bag_with_tag_list, 2)- length(skip_indices) - num_training, num_verification);
-
-bag_testing_list = ["EECS3.bag", "verification2-45.bag", "verification3-45.bag", ...
-    "grove2.bag", "verification5-45.bag", "outdoor6-notag.bag", "outdoor4.bag", "outdoor5.bag"];
-
-test_pc_mat_list = ["velodyne_points-EECS3--2019-09-06-06-19.mat", "velodyne_points-verification2--2019-09-03-23-02.mat",...
-    "velodyne_points-verification3--2019-09-03-23-03.mat", "velodyne_points-grove2--2019-09-06-06-20.mat",...
-    "velodyne_points-verification5--2019-09-03-23-03.mat", "velodyne_points-outdoor6-NoTag--2019-09-06-10-31.mat", ...
-    "velodyne_points-outdoor4--2019-09-04-18-16.mat", "velodyne_points-outdoor5--2019-09-04-18-20.mat"];
-
-%%% file parmeters
-% load_dir = "Paper-C71/21-Sep-2019 00:15:59/";
-% load_dir = "../Paper-C71/14-Sep-2019 12:49:13-testing/";
-
-bag_file_path = "bagfiles/";
-mat_file_path = "LiDARTag_data/";
-
-training_img_fig_handles = createFigHandle(num_training, "training_img");
-training_pc_fig_handles = createFigHandle(num_training, "training_pc");
-
-verfication_fig_handles = createFigHandle(num_verification, "validation_img");
-verfication_pc_fig_handles = createFigHandle(num_verification, "validation_pc");
-
-testing_fig_handles = createFigHandle(size(bag_testing_list, 2), "testing");
-
+%%%%%%%%%%%%%%%%%%%%%
 %%% camera parameters
-intrinsic_matrix = [616.3681640625, 0.0, 319.93463134765625;
-                        0.0, 616.7451171875, 243.6385955810547;
+%%%%%%%%%%%%%%%%%%%%%
+intrinsic_matrix = [616.3681640625, 0.0,            319.93463134765625;
+                    0.0,            616.7451171875, 243.6385955810547;
                     0.0, 0.0, 1.0];
 distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 
-BagData = getBagData();           
 
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% parameters of user setting
+%%% random_select (0/1): randomly select training sets
+%%% trained_ids: a list of ids of training sets
+%%% skip (0/1/2):
+%        0: optimize lidar target's corners 
+%           and then calibrate 
+%        1: skip optimize lidar target's corners
+%        2: just shown calibration results
+%%% display (0/1): To show numerical results
+%%% validation_flag (0/1): validate the calibration result
+%%% base_line_method (1/2): 
+%                   1: ransac edges seperately and the intersect edges to
+%                      estimate corners (will add back in a bit)
+%                   2: apply geometry contrain to estimate the corners
+%%% correspondance_per_pose (int): how many correspondance on a target
+%%% calibration_method: 
+%                     "4 points"
+%                     "IoU"
+%%% load_dir: directory of saved files
+%%% bag_file_path: bag files of images 
+%%% mat_file_path: mat files of extracted lidar target's point clouds
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+random_select = 0;
+trained_ids = [11, 12];
+skip = 2; 
+display = 1; % show numerical results
+validation_flag = 1; % validate results
+base_line_method = 2;
+correspondance_per_pose = 4; % 4 correspondance on a target
+calibration_method = "4 points";
+load_dir = "Paper-C71/02-Oct-2019 13:41:26/";
+bag_file_path = "bagfiles/";
+mat_file_path = "LiDARTag_data/";
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% parameters for optimization of lidar targets
+%%% We have tried several methods to recover the uobserable lidar target's 
+%%% corners, those will be added soon
+% method:
+%        Constraint Customize: Using proposed method stated in the paper
+%        Customize: coming soon
+%        Coherent Point Drift: coming soon
+%        Iterative Closest Point (point): coming soon
+%        Iterative Closest Point (plane): coming soon
+%        Normal-distributions Transform: coming soon
+%        GICP-SE3: coming soon
+%        GICP-SE3 (plane): coming soon
+%        GICP-SE3-costimized: coming soon
+%        Two Hollow Strips: coming soon
+%        Project: coming soon
+% num_refinement: how many rounds of refinement
+% num_lidar_target_pose: how many lidar target poses to optimize H_LC 
+% num_scan: accumulate how many scans to optimize a lidar target's corners
+% num_training: how many training sets to optimize H_LC
+% num_validation: how many validation set to verify the optimized H_LC
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+opt.num_refinement = 4; % 4 rounds of refinement
+opt.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
+opt.num_scan = 3; % how many scans accumulated to optimize one LiDARTag pose (3)
+opt.num_training = 2; %%% how many training set to use (2)
+opt.num_validation = 7; % use how many different datasets to verify the calibration result
+
+
+opt_H_TL.rpy_init = [45 2 3];
+opt_H_TL.T_init = [2, 0, 0];
+opt_H_TL.H_init = eye(4);
+opt_H_TL.method = "Constraint Customize"; 
+opt_H_TL.UseCentroid = 1;
+opt_H_TC.rpy_init = [90 0 90];
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% training, validation and testing datasets
+% training sets (targets included): 
+%  -- used all of them to optimize a H_LC
+% validation sets (targets included): 
+%  -- used the optimized H_LC to validate the results
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+skip_indices = [1, 2, 3]; %% skip 
+[BagData, TestData] = getBagData();  %% get 
+bag_with_tag_list  = [BagData(:).bagfile];
+bag_testing_list = [TestData(:).bagfile];
+test_pc_mat_list = [TestData(:).pc_file];
+opt.num_validation = min(size(bag_with_tag_list, 2) - ...
+                         length(skip_indices) - opt.num_training, ...
+                         opt.num_validation);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% create figure handles
+training_img_fig_handles = createFigHandle(opt.num_training, "training_img");
+training_pc_fig_handles = createFigHandle(opt.num_training, "training_pc");
+validation_fig_handles = createFigHandle(opt.num_validation, "validation_img");
+validation_pc_fig_handles = createFigHandle(opt.num_validation, "validation_pc");
+testing_fig_handles = createFigHandle(size(bag_testing_list, 2), "testing");
+
+          
 % get training indices
-bag_training_indices = randi([4, length(bag_with_tag_list)], 1, num_training);
+bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opt.num_training);
 
 % make sure they are not the same and not consists of undesire index
 while length(unique(bag_training_indices)) ~=  length(bag_training_indices) || ...
         any(ismember(bag_training_indices, skip_indices)) 
-    bag_training_indices = randi([4, length(bag_with_tag_list)], 1, num_training);
+    bag_training_indices = randi([4, length(bag_with_tag_list)], 1, opt.num_training);
 end
-
- % overwrite
-bag_training_indices = 11;
-training_bag = bag_with_tag_list(bag_training_indices);
-
-% get validation indices
-bag_verification_indices = randi(length(bag_with_tag_list), 1, num_verification);
-% make sure they are not the same and not consists of undesire index
-while length(unique(bag_verification_indices)) ~=  length(bag_verification_indices) || ...`
-      any(ismember(bag_verification_indices, skip_indices)) || ...
-      any(ismember(bag_verification_indices, bag_training_indices)) 
-   bag_verification_indices = randi(length(bag_with_tag_list), 1, num_verification);
-end
-bag_verification_indices = [4 5 6 7 8 9 10];
-bag_chosen_indices = [bag_training_indices, bag_verification_indices];
 
 % overwrite
-%              bag_chosen_indices = [bag_training_indices, 8];
+if ~random_select
+    bag_training_indices = trained_ids;
+end
 
-c = datestr(datetime);          
+% get validation indices
+bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+
+% make sure they are not the same and not consists of undesire index
+while length(unique(bag_validation_indices)) ~=  length(bag_validation_indices) || ...`
+      any(ismember(bag_validation_indices, skip_indices)) || ...
+      any(ismember(bag_validation_indices, bag_training_indices)) 
+   bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+end
+bag_chosen_indices = [bag_training_indices, bag_validation_indices];
+
+
+% save into results into folder         
 save_name = "Paper-C71";
-diary Paper-C71-diary
-available_indices = [4 5 6 7 8 9 10 11];
-count = 0;
+diary Paper-C71-diary % save terminal outputs
+
 ans_error_big_matrix = [];
 ans_counting_big_matrix = [];
-
 
 if skip
     load(load_dir + 'saved_chosen_indices.mat');
     load(load_dir + 'saved_parameters.mat');
-    num_alternative_opt = 4;
 end
 
 disp("********************************************")
@@ -128,245 +151,180 @@ disp(bag_with_tag_list(skip_indices))
 disp("-- Training set: ")
 disp(bag_with_tag_list(bag_training_indices))            
 disp("-- Validation set: ")
-disp([bag_with_tag_list(bag_verification_indices)])
+disp([bag_with_tag_list(bag_validation_indices)])
 disp("-- Chosen set: ")
 disp(bag_with_tag_list(bag_chosen_indices))
 
 disp("********************************************")
 disp(" Chosen parameters")
 disp("********************************************")
-fprintf("-- %i tag(s) in the scene\n", num_tag)
-fprintf("-- verfication flag: %i \n", verification_flag)
+fprintf("-- validation flag: %i \n", validation_flag)
 fprintf("-- number of training set: %i\n", size(bag_training_indices, 2))
-fprintf("-- number of verfication set: %i\n", size(bag_verification_indices, 2))
-fprintf("-- number of refinement: %i\n", num_alternative_opt)
-fprintf("-- number of LiDARTag's poses: %i\n", num_LiDARTag_pose)
-fprintf("-- number of total LiDARTag's poses: %i\n", size(bag_training_indices, 2) * num_LiDARTag_pose * num_tag)
-fprintf("-- number of scan to optimize a LiDARTag pose: %i\n", num_scan)
-c = datetime;
-c = datestr(c);
+fprintf("-- number of validation set: %i\n", size(bag_validation_indices, 2))
+fprintf("-- number of refinement: %i\n", opt.num_refinement)
+fprintf("-- number of LiDARTag's poses: %i\n", opt.num_lidar_target_pose)
+fprintf("-- number of scan to optimize a LiDARTag pose: %i\n", opt.num_scan)
+c = datestr(datetime); 
 save_dir = save_name + "/" + c + "/";
-
 
 
 if ~skip
     mkdir(save_dir);
-    save(save_dir + 'saved_parameters.mat', 'num_verification', 'num_scan', 'num_training','num_tag', 'num_alternative_opt', 'num_LiDARTag_pose', 'verification_flag', 'num_verification');
-    save(save_dir + 'saved_chosen_indices.mat', 'skip_indices', 'bag_training_indices', 'bag_verification_indices', 'bag_chosen_indices');
+    save(save_dir + 'saved_parameters.mat', 'opt', 'validation_flag');
+    save(save_dir + 'saved_chosen_indices.mat', 'skip_indices', 'bag_training_indices', 'bag_validation_indices', 'bag_chosen_indices');
 end
 
-
-
-% loadBagImg(training_fig_handles(1), bag_file_path + bag_list(1), 0);
-
-
-index = find(strcmp(bag_with_tag_list, training_bag(1)));
-% bag_pre = app.bagfile;
-% app.bagfile = bag_file_path + bag_list(index);
-% pc_iter_pre = app.pc_iter;
-% full_scan_pre = app.full_pointcloud_name;
-% app.full_pointcloud_name = BagData(index).full_scan;
-%             showImage(app);
-%             
 % loading training image
-for i = 1:num_training
+for i = 1:opt.num_training
     current_index = bag_training_indices(i);
     loadBagImg(training_img_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
 end
 
-% for i = 1:num_training
-%     current_index = bag_training_indices(i);
-%     loadBagImg(training_pc_fig_handles(i), bag_file_path + test_pc_mat_list(current_index), "not display", "not clean");
-% end
-
-
-for i = 1:num_verification
-    current_index = bag_verification_indices(i);
-    loadBagImg(verfication_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
+for i = 1:opt.num_validation
+    current_index = bag_validation_indices(i);
+    loadBagImg(validation_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
 end
 
-% load testing images
-for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "not display", "not clean"); 
-end
 
-% load testing pc mat
-testing_set_pc = loadTestingMatFiles(mat_file_path, test_pc_mat_list);
-
-
-%
 if skip == 1 || skip == 2
+    % load saved data
     load(load_dir + "X_base_line.mat");
     load(load_dir + "X_train.mat");
     load(load_dir + "Y.mat")
-    load(load_dir + "save_verification.mat")
+    load(load_dir + "save_validation.mat")
+    load(load_dir + "array.mat")
+    load(load_dir + "BagData.mat")
 else
-    X_train = []; % LiDARTag corners in 3D
-    Y_train = []; % AprilTag corners in 2D
-    X_verification = []; % LiDARTag corners in 3D
-    Y_verification = []; % AprilTag corners in 2D
+    disp("********************************************")
+    disp(" Optimizing LiDAR Target Corners")
+    disp("********************************************")
+    X_train = []; % training corners of lidar targets in 3D
+    Y_train = []; % training corners of image targets in 2D
+    train_num_tag_array = []; % number of tag in each training data (need to be used later)
+    train_tag_size_array = []; % size of tag in each training data (need to be used later)
+    validation_num_tag_array = []; % number of tag in each training data (need to be used later)
+    validation_tag_size_array = []; % size of tag in each training data (need to be used later)
+    X_validation = []; % validation corners of lidar targets in 3D
+    Y_validation = []; % validation corners of image targets in 2D
     H_LT_big = [];
     X_base_line_edge_points = [];
     X_base_line = [];
     Y_base_line = [];
     N_base_line = [];
-    disp("********************************************")
-    disp(" Optimizing LiDARTag poses")
-    disp("********************************************")
-    for i = 1:num_LiDARTag_pose
-        if num_tag == 1
-            %%% big
-            image_num = i;
-            app.pc_iter = num_scan*(i-1) + 1;
+    
+    for i = 1:opt.num_lidar_target_pose
+        fprintf("--- Working on scan: %i/%i\n", i, opt.num_lidar_target_pose)
+        validation_counter = 1;
+        for k = 1:length(bag_chosen_indices)
+            current_index = bag_chosen_indices(k);
+            fprintf("Working on %s -->", bag_with_tag_list(current_index))
 
-            [LiDARTag_large, AprilTag_large] = get4Corners(app, BagData(index).name_biggest, apriltag_txt_biggest, bag_with_tag_list(index), tag_size_biggest, target_len_biggest, image_num, num_scan);
-            AprilTag_large.four_corners_line =  point2DToLineForDrawing(app, AprilTag_large.corners.large);
-            showLinedLiDARTag(app, LiDARTag_large);
-            showLinedAprilTag(app, app.AprilTagFig, AprilTag_large.corners.large, AprilTag_large.four_corners_line);
-            % 1 tag
-            X_train = [X_train, LiDARTag_large.corners]; % 4 x M*i, M is correspondance per scan, i is scan
-            Y_train = [Y_train, AprilTag_large.corners.large]; % 3 x M*i, M is correspondance per image, i is image
-
-        elseif num_tag == 2
-            %%% small
-            fprintf("--- Working on scan: %i/%i\n", i, num_LiDARTag_pose)
-            verification_counter = 1;
-            for k = 1:length(bag_chosen_indices)
-                current_index = bag_chosen_indices(k);
-                fprintf("Working on %s -->", bag_with_tag_list(current_index))
-
-                % skip undesire index
-                if any(ismember(current_index, skip_indices))
-                    continue
-                end
-
-                % if don't want to get verification set, skip
-                % everything else but the traing set
-                if ~verification_flag
-                    if ~any(ismember(bag_training_indices, current_index))
-                        continue;
-                    end
-                end
-
-                % training set
-                if any(ismember(bag_training_indices, current_index))
-                    image_num = i;
-                    pc_iter = num_scan*(i-1) + 1; 
-                    [LiDARTag_small, AprilTag_small, small_H_LT] = get4CornersReturnHLT(opt, mat_file_path, BagData(current_index).name_small, ...
-                        BagData(current_index).bagfile, params.target_len_small, pc_iter, num_scan);
-    %                             [LiDARTag_small, AprilTag_small] = get4Corners(app, BagData(current_index).name_small, apriltag_txt_small, ...
-    %                                                                     bag_list(current_index), tag_size_small, target_len_small, image_num, num_scan);
-                    AprilTag_small.four_corners_line =  point2DToLineForDrawing(AprilTag_small.corners.small);
-                    showLinedLiDARTag(training_pc_fig_handles(k), LiDARTag_small, "display");
-                    showLinedAprilTag(training_img_fig_handles(k), AprilTag_small.corners.small, AprilTag_small.four_corners_line, "display");
-                    training_scan(i).dataset(k).payload_small = LiDARTag_small.points;
-                    %%% big
-                    image_num = i;
-                    pc_iter = num_scan*(i-1) + 1;
-                    [LiDARTag_large, AprilTag_large, large_H_LT] = get4CornersReturnHLT(opt, mat_file_path, BagData(current_index).name_biggest, ...
-                                                            BagData(current_index).bagfile, params.tag_size_biggest, pc_iter, num_scan);
-                    training_scan(i).dataset(k).payload_big = LiDARTag_large.points;
-    %                             [LiDARTag_large, AprilTag_large] = get4Corners(app, BagData(current_index).name_biggest, apriltag_txt_biggest,...
-    %                                 bag_list(current_index), tag_size_biggest, target_len_biggest, image_num, num_scan);
-                    AprilTag_large.four_corners_line =  point2DToLineForDrawing(AprilTag_large.corners.large);
-                    showLinedLiDARTag(training_pc_fig_handles(k), LiDARTag_large, "display");
-                    showLinedAprilTag(training_img_fig_handles(k), AprilTag_large.corners.large, AprilTag_large.four_corners_line, "display");
-                    drawnow
-
-                    % 2tags
-                    X_train = [X_train, LiDARTag_small.corners,       LiDARTag_large.corners]; % 4 x M*i, M is correspondance per scan, i is scan
-                    Y_train = [Y_train, AprilTag_small.corners.small, AprilTag_large.corners.large]; % 3 x M*i, M is correspondance per image, i is image
-                    fprintf(" Got training set: %s\n", bag_with_tag_list(current_index))
-
-                    %%% [corners, normal_vector]=
-    %                             [corners_big, edges] = KaessNewCorners(app, BagData(current_index).name_biggest);
-                    pc_iter = num_scan*(i-1) + 1;
-                    [corners_big, edges]= KaessNewConstraintCorners(mat_file_path, BagData(current_index).name_biggest, pc_iter);
-    %                             figure(4);
-    %                             scatter3(cross_big_3d(1,:), cross_big_3d(2,:), cross_big_3d(3,:))
-    %                             [corners_small, small_normal_vec] = KaessCorners(app, BagData(index).name_small);
-    %                             X_base_line = [X_base_line, corners_small, corners_big];
-    %                             Y_base_line = [Y_base_line, AprilTag_small.corners.small, AprilTag_large.corners.large];
-    %                             N_base_line = [N_base_line, small_normal_vec];
-                    X_base_line = [X_base_line, corners_big];
-                    Y_base_line = [Y_base_line, AprilTag_large.corners.large];
-                    X_base_line_edge_points = [X_base_line_edge_points, edges];
-                    H_LT_big = [H_LT_big, small_H_LT, large_H_LT];
-
-                else
-                    %%% verification set
-                    if verification_counter > num_verification
-                        break;
-                    end
-                    image_num = i;
-                    pc_iter = num_scan*(i-1) + 1;
-
-                    [verificatoin_LiDARTag_small, verificatoin_AprilTag_small, ~] = get4CornersReturnHLT(opt, mat_file_path, BagData(current_index).name_small, ...
-                                                                                        BagData(current_index).bagfile, params.target_len_small, pc_iter, num_scan);
-                    verificatoin_AprilTag_small.four_corners_line =  point2DToLineForDrawing(verificatoin_AprilTag_small.corners.small);
-                    showLinedLiDARTag(verfication_pc_fig_handles(k-num_training), verificatoin_LiDARTag_small, "display");
-                    showLinedAprilTag(verfication_fig_handles(k-num_training), verificatoin_AprilTag_small.corners.small, verificatoin_AprilTag_small.four_corners_line, "display");
-                    verification_scan(i).dataset(verification_counter).payload_small = verificatoin_LiDARTag_small.points;
-
-                    %%% big
-                    image_num = i;
-                    pc_iter = num_scan*(i-1) + 1;
-
-
-                    [verificatoin_LiDARTag_large, verificatoin_AprilTag_large, ~] = get4CornersReturnHLT( opt, mat_file_path, BagData(current_index).name_biggest, ...
-                                                                BagData(current_index).bagfile, params.target_len_biggest, pc_iter, num_scan);
-                    verification_scan(i).dataset(verification_counter).payload_big = verificatoin_LiDARTag_large.points;
-                    verificatoin_AprilTag_large.four_corners_line =  point2DToLineForDrawing(verificatoin_AprilTag_large.corners.large);
-                    showLinedLiDARTag(verfication_pc_fig_handles(k-num_training), verificatoin_LiDARTag_large, "display");
-                    showLinedAprilTag(verfication_fig_handles(k-num_training), verificatoin_AprilTag_large.corners.large, verificatoin_AprilTag_large.four_corners_line, "display");
-
-                    %%% 2tags
-                    X_verification = [X_verification, verificatoin_LiDARTag_small.corners,       verificatoin_LiDARTag_large.corners]; % 4 x M*i, M is correspondance per scan, i is scan
-                    Y_verification = [Y_verification, verificatoin_AprilTag_small.corners.small, verificatoin_AprilTag_large.corners.large]; % 3 x M*i, M is correspondance per image, i is image
-                    fprintf(" Got verificatoin set: %s\n", bag_with_tag_list(current_index))
-                    verification_counter = verification_counter + 1;
-                end
-
+            % skip undesire index
+            if any(ismember(current_index, skip_indices))
+                continue
             end
 
-        elseif num_tag == 3
-            %%% smallest
-            image_num = i;
-            app.pc_iter = num_scan*(i-1) + 1;
-            [LiDARTag_small, AprilTag_small] = get4Corners(app, name_small, apriltag_txt_small, bag_with_tag_list(current_index), tag_size_small, target_len_small, image_num, num_scan);
-            AprilTag_small.four_corners_line =  point2DToLineForDrawing(app, AprilTag_small.corners.small);
-            showLinedLiDARTag(app, LiDARTag_small);
-            showLinedAprilTag(app, app.AprilTagFig, AprilTag_small.corners.small, AprilTag_small.four_corners_line);
+            % if don't want to get validation set, skip
+            % everything else but the traing set
+            if ~validation_flag
+                if ~any(ismember(bag_training_indices, current_index))
+                    continue;
+                end
+            end
 
+            % training set
+            if any(ismember(bag_training_indices, current_index))
+                X_training_tmp = [];
+                Y_training_tmp = [];
+                H_LT_tmp = [];
 
-            %%% middle
-            image_num = i;
-             app.pc_iter = num_scan*(i-1) + 1;
-            [LiDARTag_medium, AprilTag_medium] = get4Corners(app, name_medium, apriltag_txt_medium, bag_with_tag_list(current_index), tag_size_medium, target_len_medium, image_num, num_scan);
-            AprilTag_medium.four_corners_line =  point2DToLineForDrawing(app, AprilTag_medium.corners.medium);
-            showLinedLiDARTag(app, LiDARTag_medium);
-            showLinedAprilTag(app, app.AprilTagFig, AprilTag_medium.corners.medium, AprilTag_medium.four_corners_line)
+                for j = 1:BagData(current_index).num_tag
+                    image_num = i;
+                    pc_iter = opt.num_scan*(i-1) + 1;
+                    
+                    % optimize lidar targets corners
+                    [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt_H_TL, ...
+                                                         mat_file_path, BagData(current_index), ...
+                                                         pc_iter, opt.num_scan);
+                    % draw camera targets 
+                    BagData(current_index).camera_target(j).four_corners_line = ...
+                                                point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
+                    showLinedLiDARTag(training_pc_fig_handles(k), ...
+                                      BagData(current_index).lidar_target(j).scan(i), "display");
+                    showLinedAprilTag(training_img_fig_handles(k), ...
+                                      BagData(current_index).camera_target(j), "display");
+                    drawnow
+                    X_training_tmp = [X_training_tmp, BagData(current_index).lidar_target(j).scan(i).corners];
+                    Y_training_tmp = [Y_training_tmp, BagData(current_index).camera_target(j).corners];
+                    H_LT_tmp = [H_LT_tmp, H_LT];
+                    train_num_tag_array = [train_num_tag_array, BagData(current_index).num_tag];
+                    train_tag_size_array = [train_tag_size_array, BagData(current_index).lidar_target(j).tag_size];
+                end
 
-            %%% big
-            image_num = i;
-            app.pc_iter = num_scan*(i-1) + 1;
-            [LiDARTag_large, AprilTag_large] = get4Corners(app, name_biggest, apriltag_txt_biggest, bag_with_tag_list(current_index), tag_size_biggest, target_len_biggest, image_num, num_scan);
-            AprilTag_large.four_corners_line =  point2DToLineForDrawing(app, AprilTag_large.corners.large);
-            showLinedLiDARTag(app, LiDARTag_large);
-            showLinedAprilTag(app, app.AprilTagFig, AprilTag_large.corners.large, AprilTag_large.four_corners_line);
-            % 3 tags
-            X_train = [X_train, LiDARTag_small.corners,       LiDARTag_medium.corners,        LiDARTag_large.corners]; % 4 x M*i, M is correspondance per scan, i is scan
-            Y_train = [Y_train, AprilTag_small.corners.small, AprilTag_medium.corners.medium, AprilTag_large.corners.large]; % 3 x M*i, M is correspondance per image, i is image
+                % 4 x M*i, M is correspondance per scan, i is scan
+                X_train = [X_train, X_training_tmp]; 
+
+                % 3 x M*i, M is correspondance per image, i is image
+                Y_train = [Y_train, Y_training_tmp]; 
+                fprintf(" Got training set: %s\n", bag_with_tag_list(current_index))
+                
+                % base line
+                pc_iter = opt.num_scan*(i-1) + 1;
+                [corners_big, edges]= KaessNewConstraintCorners(mat_file_path, ...
+                                        BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                X_base_line = [X_base_line, corners_big];
+                Y_base_line = [Y_base_line, BagData(current_index).camera_target(1).corners]; %% use big tag
+                X_base_line_edge_points = [X_base_line_edge_points, edges];
+                H_LT_big = [H_LT_big, H_LT_tmp];
+
+            else
+                %%% validation set
+                if validation_counter > opt.num_validation
+                    break;
+                end
+
+                X_validation_tmp = [];
+                Y_validation_tmp = [];
+
+                for j = 1:BagData(current_index).num_tag
+                    image_num = i;
+                    pc_iter = opt.num_scan*(i-1) + 1; 
+                    [BagData(current_index), ~] = get4CornersReturnHLT(i, j, opt_H_TL, ...
+                                                         mat_file_path, BagData(current_index), ...
+                                                         pc_iter, opt.num_scan);
+
+                    BagData(current_index).camera_target(j).four_corners_line = ...
+                                                point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
+                    showLinedLiDARTag(validation_pc_fig_handles(validation_counter), ...
+                                      BagData(current_index).lidar_target(j).scan(i), "display");
+                    showLinedAprilTag(validation_fig_handles(validation_counter), ...
+                                      BagData(current_index).camera_target(j), "display");
+                    drawnow
+                    X_validation_tmp = [X_validation_tmp, BagData(current_index).lidar_target(j).scan(i).corners];
+                    Y_validation_tmp = [Y_validation_tmp, BagData(current_index).camera_target(j).corners];
+                    validation_num_tag_array = [validation_num_tag_array, BagData(current_index).num_tag];
+                    validation_tag_size_array = [validation_tag_size_array, BagData(current_index).lidar_target(j).tag_size];
+                end
+
+                % 4 x M*i, M is correspondance per scan, i is scan
+                X_validation = [X_validation, X_validation_tmp]; 
+
+                % 3 x M*i, M is correspondance per image, i is image
+                Y_validation = [Y_validation, Y_validation_tmp]; 
+                fprintf(" Got verificatoin set: %s\n", bag_with_tag_list(current_index))
+                validation_counter = validation_counter + 1;
+            end
 
         end
-    %                 Y = [Y, AprilTag_small.undistorted_corners.small, AprilTag_large.undistorted_corners.large];
         fprintf("--- Finished scan: %i\n", i)
     end
     drawnow
     save(save_dir + 'X_base_line.mat', 'X_base_line');
-    save(save_dir + 'X_train.mat', 'X_train', 'H_LT_big', 'X_base_line_edge_points', 'training_scan');
+    save(save_dir + 'X_train.mat', 'X_train', 'H_LT_big', 'X_base_line_edge_points');
+    save(save_dir + 'array.mat', 'train_num_tag_array', 'train_tag_size_array', 'validation_num_tag_array', 'validation_tag_size_array');
     save(save_dir + 'Y.mat', 'Y_train', 'Y_base_line');
-    save(save_dir + 'save_verification.mat', 'X_verification', 'Y_verification', 'verification_scan');
+    save(save_dir + 'BagData.mat', 'BagData');
+    save(save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
 end
 
 %
@@ -376,80 +334,73 @@ if ~(skip == 2)
     disp("********************************************")
     disp(" Calibrating...")
     disp("********************************************")
-
-
-
-    %             ave_dH_SR_vec = zeros(1,6);
-    %             ave_dH_NSR_vec = zeros(1,6);
-
-    %%% tweak
-    %             H_tweak = eye(4);
-    %             H_tweak(1:3,1:3) = rotx(2) * roty(40) * rotz(-3);
-    %             X_train = H_tweak * X_train;
-    switch method
-        case 'matlab'
-            cameraParams = cameraParameters('IntrinsicMatrix', intrinsic_matrix');
-            [worldOrientation,worldLocation] = estimateWorldCameraPose(Y_train(1:2,:)', X_train(1:3, :)', cameraParams);
-            H_LC = eye(4);
-            H_LC(1:3, 1:3) = worldOrientation;
-            H_LC(4, 1:3) = worldLocation;
-            H_LC = H_LC';
-            app.P = app.intrinsic_matrix * [eye(3) zeros(3,1)] * H_LC;
-
+    switch calibration_method
         case "4 points"
-             % one shot calibration (*-NR)
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(X_square_no_refinement, Y_train, intrinsic_matrix, display); % square withOUT refinement
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(X_base_line, Y_base_line, intrinsic_matrix, display); % NOT square withOUT refinement
+            %%%  one shot calibration (*-NR)
+            % square withOUT refinement
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init,...
+                                                                    X_square_no_refinement, Y_train, ...
+                                                                    intrinsic_matrix, display); 
+            % NOT square withOUT refinement
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                                                                       X_base_line, Y_base_line, ... 
+                                                                       intrinsic_matrix, display); 
 
-            if num_alternative_opt > 0
-                for i = 1: num_alternative_opt
-                    disp('---------------------')
-                    disp(' Optimizing H_LC ...')
-                    disp('---------------------')
+            for i = 0: opt.num_refinement-1
+                disp('---------------------')
+                disp(' Optimizing H_LC ...')
+                disp('---------------------')
 
-                    [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(X_train, Y_train, intrinsic_matrix, display); % square with refinement
-                    [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(X_not_square_refinement, Y_base_line, intrinsic_matrix, display); % NOT square with refinement
-                    
-                    if i == num_alternative_opt
-                        break;
-                    else
-                        disp('------------------')
-                        disp(' Refining H_LT ...')
-                        disp('------------------')
-                        X_train = regulizedFineTuneLiDARTagPose(params, X_train, Y_train, H_LT_big, SR_P, correspondance_per_pose, display);
-                        X_not_square_refinement = regulizedFineTuneKaessCorners(X_not_square_refinement, Y_base_line, ...
-                                        X_base_line_edge_points, NSR_P, correspondance_per_pose, display);
-
-                    end
+                % square with refinement
+                [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                                                                     X_train, Y_train, ... 
+                                                                     intrinsic_matrix, display); 
+                % NOT square with refinement
+                [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                                                                        X_not_square_refinement, Y_base_line, ...
+                                                                        intrinsic_matrix, display); 
+                
+                if i == opt.num_refinement-1
+                    break;
+                else
+                    disp('------------------')
+                    disp(' Refining H_LT ...')
+                    disp('------------------')
+                    X_train = regulizedFineTuneLiDARTagPose(train_tag_size_array, ...
+                                                            X_train, Y_train, H_LT_big, SR_P, ...
+                                                            correspondance_per_pose, display);
+                    X_not_square_refinement = regulizedFineTuneKaessCorners(X_not_square_refinement, Y_base_line,...
+                                                                            X_base_line_edge_points, NSR_P, ...
+                                                                            correspondance_per_pose, display);
                 end
-            else
-    %                         disp('---------------------')
-    %                         disp(' Optimizing H_LC ...')
-    %                         disp('---------------------')
-                [app.H_LC, app.P, app.opt_total_cost] = optimize4Points(X_train, Y_train, intrinsic_matrix, display);
             end
 
         case "IoU"
             % one shot calibration (*-NR)
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(X_square_no_refinement, Y_train, intrinsic_matrix, display); % square withOUT refinement
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(X_base_line, Y_base_line, intrinsic_matrix, display); % NOT square withOUT refinement
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                                                                    X_square_no_refinement, Y_train, ...
+                                                                    intrinsic_matrix, display); % square withOUT refinement
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                                                                       X_base_line, Y_base_line, ...
+                                                                       intrinsic_matrix, display); % NOT square withOUT refinement
 
             if Alternating
-                for i = 1: num_alternative_opt
+                for i = 1: opt.num_refinement
                     disp('---------------------')
                     disp(' Optimizing H_LC ...')
                     disp('---------------------')
 
                     [SR_H_LC, SR_P, SR_opt_total_cost] = optimizeIoU(X_train, Y_train, intrinsic_matrix); % square with refinement
                     [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimizeIoU(X_not_square_refinement, Y_base_line, intrinsic_matrix); % NOT square with refinement
-                    if i == num_alternative_opt
+                    if i == opt.num_refinement
                         break;
                     else
                         disp('------------------')
                         disp(' Refining H_LT ...')
                         disp('------------------')
 
-                        X_train = regulizedFineTuneLiDARTagPose(params, X_train, Y_train, H_LT_big, SR_P, ...
+                        X_train = regulizedFineTuneLiDARTagPose(train_tag_size_array, ...
+                                                                X_train, Y_train, H_LT_big, SR_P, ...
                                                                 correspondance_per_pose, display);
                         X_not_square_refinement = regulizedFineTuneKaessCorners(X_not_square_refinement, ...
                                                                 Y_base_line, X_base_line_edge_points, NSR_P, ...
@@ -457,74 +408,31 @@ if ~(skip == 2)
                     end
                 end
             end
-        case "Customize"
     end
-%             save(save_dir + 'X_base_line.mat', 'X_base_line');
-%             save(save_dir + 'X_not_square_refinement.mat', 'X_not_square_refinement');
-%             save(save_dir + 'X_square_no_refinement.mat', 'X_square_no_refinement');
-%             save(save_dir + 'X_train.mat', 'X_train');
-%             save(save_dir + 'Y.mat', 'Y_train', 'Y_base_line');
-%             
-%             save(save_dir + 'save_verification.mat', 'X_verification', 'Y_verification');
-%             save(save_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
-%             save(save_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
-%             save(save_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
-%             save(save_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
-end
-%
-if skip
-%                 load(load_dir + "X_base_line.mat");
-%                 load(load_dir + "X_not_square_refinement.mat");
-%                 load(load_dir + "X_square_no_refinement.mat");
-%                 load(load_dir + "X_train.mat");
-%                 load(load_dir + "Y.mat")
-
-%                 load(load_dir + "NSNR.mat");
-%                 load(load_dir + "SNR.mat");
-%                 load(load_dir + "NSR.mat");
-%                 load(load_dir + "SR.mat");
-%                 load(load_dir + "save_verification.mat")
-end
-if num_alternative_opt > 0
-    app.H_LC = SR_H_LC;
-    app.P = SR_P;
-    app.opt_total_cost = SR_opt_total_cost;
+    if skip == 0
+        save(save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
+        save(save_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
+        save(save_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
+        save(save_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
+        save(save_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
+    elseif skip == 1
+        save(load_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
+        save(load_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
+        save(load_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
+        save(load_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
+        save(load_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
+    end
 end
 
-%             dH_LT_SR = eye(4);
-%             dH_LT_SR(1:3,1:3) = expm(skew(app, ave_dH_SR_vec(1:3)));
-%             dH_LT_SR(1:3,4) = ave_dH_SR_vec(4:6)';
-%             
-%             dH_LT_NSR = eye(4);
-%             dH_LT_NSR(1:3,1:3) = expm(skew(app, ave_dH_NSR_vec(1:3)));
-%             dH_LT_NSR(1:3,4) = ave_dH_NSR_vec(4:6)';
-%             
-
-if verification_flag
-    SR_verification_cost = verifyCornerAccuracyWRTDataset(num_verification, num_LiDARTag_pose, num_tag, ...
-            X_verification, Y_verification, SR_P);
-    NSR_verification_cost = verifyCornerAccuracyWRTDataset(num_verification, num_LiDARTag_pose, num_tag, ...
-            X_verification, Y_verification, NSR_P);
-    SNR_verification_cost = verifyCornerAccuracyWRTDataset(num_verification, num_LiDARTag_pose, num_tag, ...
-            X_verification, Y_verification, SNR_P);
-
-
-
-    NSNR_verification_cost = verifyCornerAccuracyWRTDataset(num_verification, num_LiDARTag_pose, num_tag, ...
-        X_verification, Y_verification, NSNR_P);
-    [t_SNR_count, t_SR_count] = inAndOutBeforeAndAfter(training_scan, Y_train, SNR_P, SR_P, num_training, num_LiDARTag_pose, num_tag);
-    [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(training_scan, Y_train, NSNR_P, NSR_P, num_training, num_LiDARTag_pose, num_tag);
-
-    [SNR_count, SR_count] = inAndOutBeforeAndAfter(verification_scan, Y_verification, SNR_P, SR_P, num_verification, num_LiDARTag_pose, num_tag);
-    [NSNR_count, NSR_count] = inAndOutBeforeAndAfter(verification_scan, Y_verification, NSNR_P, NSR_P, num_verification, num_LiDARTag_pose, num_tag);
-%                 SR_verification_cost = verifyCornerAccuracy(app, X_verification, Y_verification, SR_P);
-%                 SNR_verification_cost = verifyCornerAccuracy(app, X_verification, Y_verification, SNR_P);
-%                 NSR_verification_cost = verifyCornerAccuracy(app, X_verification, Y_verification, NSR_P);
-%                 NSNR_verification_cost = verifyCornerAccuracy(app, X_verification, Y_verification, NSNR_P);
+% load saved data
+if skip == 2
+    load(load_dir + "NSNR.mat");
+    load(load_dir + "SNR.mat");
+    load(load_dir + "NSR.mat");
+    load(load_dir + "SR.mat");
+    load(load_dir + "save_validation.mat")
 end
 
-%             drawRotated2Dpoint(app, app.AprilTagFig, NSNR_H_LC, X_base_line);
-%kaess_H_LC = kaess_H_LC * normal_vector
 disp("****************** NSNR-training ******************")
 disp('NSNR_H_LC: ')
 disp(' R:')
@@ -539,6 +447,7 @@ disp(NSNR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
 disp(NSNR_opt_total_cost/size(Y_base_line, 2)) % 2 tags, 4 corners
 ans_error_submatrix = [bag_training_indices(1); NSNR_opt_total_cost/size(Y_base_line, 2)];
+
 disp("****************** NSR-training ******************")
 disp('NSR_H_LC: ')
 disp(' R:')
@@ -553,6 +462,7 @@ disp(NSR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
 disp(NSR_opt_total_cost/size(Y_base_line, 2)) % 2 tags, 4 corners
 ans_error_submatrix = [ans_error_submatrix; NSR_opt_total_cost/size(Y_base_line, 2)];
+
 disp("****************** SNR-training ******************")
 disp('SNR_H_LC: ')
 disp(' R:')
@@ -567,20 +477,21 @@ disp(SNR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
 disp(SNR_opt_total_cost/size(Y_train, 2)) % 2 tags, 4 corners
 ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
+
 disp("****************** SR-training ******************")
 disp('H_LC: ')
 disp(' R:')
-disp(app.H_LC(1:3, 1:3))
+disp(SR_H_LC(1:3, 1:3))
 disp(' RPY (XYZ):')
-disp(rad2deg(rotm2eul(app.H_LC(1:3, 1:3), "XYZ")))
+disp(rad2deg(rotm2eul(SR_H_LC(1:3, 1:3), "XYZ")))
 disp(' T:')
-disp(-inv(app.H_LC(1:3, 1:3))*app.H_LC(1:3, 4))
+disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
 disp("========= Error =========")
 disp(' Training Total Error (pixel)')
-disp(app.opt_total_cost)
+disp(SR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
-disp(app.opt_total_cost/size(Y_train, 2)) % 2 tags, 4 corners
-ans_error_submatrix = [ans_error_submatrix; app.opt_total_cost/size(Y_base_line, 2)];
+disp(SR_opt_total_cost/size(Y_train, 2)) % 2 tags, 4 corners
+ans_error_submatrix = [ans_error_submatrix; SR_opt_total_cost/size(Y_base_line, 2)];
 ans_error_big_matrix = [ans_error_submatrix];
 
 if length(bag_training_indices)>1
@@ -591,238 +502,132 @@ if length(bag_training_indices)>1
     end
 end
 
-if verification_flag
-    disp("***************** Verification Error*****************")
-    for i = 1:num_verification
+%%% verify corner accuracy
+if validation_flag
+    SR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, SR_P);
+    NSR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, NSR_P);
+    SNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, SNR_P);
+    NSNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, NSNR_P);
+
+    [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
+                                                         opt.num_training, opt, BagData, SNR_P, SR_P);
+    [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
+                                                         opt.num_training, opt, BagData, NSNR_P, NSR_P);
+    [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
+                                                         opt.num_validation, opt, BagData, SNR_P, SR_P);
+    [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
+                                                         opt.num_validation, opt, BagData, NSNR_P, NSR_P);
+end
+
+
+if validation_flag
+    disp("***************** validation Error*****************")
+    for i = 1:opt.num_validation
         disp('------')
-        current_index = bag_verification_indices(i);
+        current_index = bag_validation_indices(i);
         fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
-        ans_error_submatrix = [bag_verification_indices(i)];
+        ans_error_submatrix = [bag_validation_indices(i)];
         disp("-- Error Per Corner (pixel)")
-        disp(' NSNR Verification Error Per Corner (pixel)')
-        disp(NSNR_verification_cost(i).total_cost/ size(Y_verification, 2))
+        disp(' NSNR validation Error Per Corner (pixel)')
+        disp(NSNR_validation_cost(i).total_cost/ size(Y_validation, 2))
         ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
-        disp(' NSR Verification Error Per Corner (pixel)')
-        disp(NSR_verification_cost(i).total_cost/ size(Y_verification, 2))
+        disp(' NSR validation Error Per Corner (pixel)')
+        disp(NSR_validation_cost(i).total_cost/ size(Y_validation, 2))
         ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
-        disp(' SNR Verification Error Per Corner (pixel)')
-        disp(SNR_verification_cost(i).total_cost/ size(Y_verification, 2))
+        disp(' SNR validation Error Per Corner (pixel)')
+        disp(SNR_validation_cost(i).total_cost/ size(Y_validation, 2))
         ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
-        disp(' SR Verification Error Per Corner (pixel)')
-        disp(SR_verification_cost(i).total_cost/ size(Y_verification, 2))
+        disp(' SR validation Error Per Corner (pixel)')
+        disp(SR_validation_cost(i).total_cost/ size(Y_validation, 2))
         ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
         ans_error_big_matrix = [ans_error_big_matrix, ans_error_submatrix];
-%                     disp("-- STD of error of small and big tag (pixel)")
-%                     disp(' NSNR Verification STD of Error (pixel)')
-%                     disp(NSNR_verification_cost(i).mix_std)
-%                     disp(' NSR Verification STD of Error (pixel)')
-%                     disp(NSR_verification_cost(i).mix_std)
-%                     disp(' SNR Verification STD of Error (pixel)')
-%                     disp(SNR_verification_cost(i).mix_std)
-%                     disp(' SR Verification STD of Error (pixel)')
-%                     disp(SR_verification_cost(i).mix_std)
-%                     disp('------')
     end
+    
+    disp("***************** Training point counting *****************")
+    disp("project full pc (SR)")
+    disp(struct2table(t_SR_count))
+    disp("project full pc (SNR)")
+    disp(struct2table(t_SNR_count))
+    disp("project full pc (NSR)")
+    disp(struct2table(t_NSR_count))
+    disp("project full pc (NSNR)")
+    disp(struct2table(t_NSNR_count))
+    disp("diff")
+    disp(([t_NSR_count(:).count] - [t_NSNR_count(:).count])./[t_NSNR_count(:).count])
+    disp(([t_SR_count(:).count] - [t_SNR_count(:).count])./[t_SNR_count(:).count])
 
-disp("***************** Training point counting *****************")
-disp("project full pc (SR)")
-disp([t_SR_count])
-disp("project full pc (SNR)")
-disp([t_SNR_count])
-disp("project full pc (NSR)")
-disp([t_NSR_count])
-disp("project full pc (NSNR)")
-disp([t_NSNR_count])
-disp("diff")
-disp(([t_NSR_count] - [t_NSNR_count])./[t_NSNR_count])
-disp(([t_SR_count] - [t_SNR_count])./[t_SNR_count])
-for i = 1:length(bag_training_indices)
-    ans_subcount_matrix = [bag_training_indices(i); t_NSNR_count(i); t_NSR_count(i); t_SNR_count(i); t_SR_count(i)]; 
-    ans_counting_big_matrix = [ans_counting_big_matrix, ans_subcount_matrix];
+    disp("***************** validation point counting *****************")
+    disp("project full pc (SR)")
+    disp(struct2table(SR_count))
+    disp("project full pc (SNR)")
+    disp(struct2table(SNR_count))
+    disp("project full pc (NSR)")
+    disp(struct2table(NSR_count))
+    disp("project full pc (NSNR)")
+    disp(struct2table(NSNR_count))
+    disp("diff")
+    disp(([NSR_count(:).count] - [NSNR_count(:).count])./[NSNR_count(:).count])
+    disp(([SR_count(:).count] - [SNR_count(:).count])./[SNR_count(:).count])
+    disp("********************************************")
 end
 
-disp("***************** Verification point counting *****************")
 
-disp("project full pc (SR)")
-disp([SR_count])
-disp("project full pc (SNR)")
-disp([SNR_count])
-disp("project full pc (NSR)")
-disp([NSR_count])
-disp("project full pc (NSNR)")
-disp([NSNR_count])
-disp("diff")
-disp(([NSR_count] - [NSNR_count])./[NSNR_count])
-disp(([SR_count] - [SNR_count])./[SNR_count])
-
-end
-for i = 1:length(bag_verification_indices)
-    ans_subcount_matrix = [bag_verification_indices(i); NSNR_count(i); NSR_count(i); SNR_count(i); SR_count(i)]; 
-    ans_counting_big_matrix = [ans_counting_big_matrix, ans_subcount_matrix];
+if ~validation_flag
+    save(save_dir + 'validation_cost' , 'SR_validation_cost', 'SNR_validation_cost', 'NSR_validation_cost', 'NSNR_validation_cost');
 end
 
-%             disp("========= std =========")
-%             [mean_training, std_training] = computeSTD(app, X_train, num_training, num_LiDARTag_pose, num_tag);
-%             [mean_verification, std_verification] = computeSTD(app, X_verification, num_verification, num_LiDARTag_pose, num_tag);
-%             disp(' std of training set')
-%             disp(std_verification)
-%             disp(' std of verfication set')
-%             disp(std_training)
-%             
-%             disp("========= mean =========")
-%             disp(' mean of training set')
-%             disp(mean_verification)
-%             disp(mean_training)
-%             disp(' mean of verfication set')
-%             disp(mean_training)
-%             diff(std(diff(X_verification')))
-disp("********************************************")
+%%% draw results
+% project training results
+for i = 1:opt.num_training % which dataset
+    current_index = bag_training_indices(i);
 
-if ~verification_flag
-    save(save_dir + 'verfication_cost' , 'SR_verification_cost', 'SNR_verification_cost', 'NSR_verification_cost', 'NSNR_verification_cost');
-
-end
-
-%         end
-%     end
-
-%     save(save_dir + 'result.mat','ans_counting_big_matrix', 'ans_error_big_matrix');
-% end
-
-%%% CAD model
-%             cad_H_LC = eye(4);
-%             cad_R_LC = rotx(90) * rotz(90);
-%             cad_T_LC = [0.1, 0.03, -0.2]';
-%             cad_H_LC(1:3,:) = [cad_R_LC -cad_R_LC*cad_T_LC];
-%             app.P = app.intrinsic_matrix * [eye(3) zeros(3,1)] * cad_H_LC;
-
-%%% disturbance 
-%             disturb_H_LC = eye(4);
-%             disturb_R_LC = rotx(84) * rotz(90);
-%             disturb_T_LC = [0.1268 0.0315 -0.1996]';
-%             disturb_H_LC(1:3,:) = [disturb_R_LC -disturb_R_LC*disturb_T_LC];
-%             app.P = app.intrinsic_matrix * [eye(3) zeros(3,1)] * disturb_H_LC;
-
-%%% Wil's 
-%             Will_H_LC = eye(4);
-%             Will_R_LC = [-0.0087 -1.0000 0.0012;
-%                           0.0194   -0.0013   -0.9998;
-%                           0.9998   -0.0087    0.0194];
-%             Will_T_LC = [0.0913 -0.0024 -0.0918]';
-%             Will_H_LC(1:3,:) = [Will_R_LC -Will_R_LC*Will_T_LC];
-%             app.P = app.intrinsic_matrix * [eye(3) zeros(3,1)] * Will_H_LC;
-
-%%% showing results
-
-%             training_corners_NSNR = splitData(app, X_base_line, num_training, num_LiDARTag_pose, 1);
-%             training_corners_SNR = splitData(app, X_square_no_refinement, num_training, num_LiDARTag_pose, num_tag);
-%             training_corners_NSR = splitData(app, X_not_square_refinement, num_training, num_LiDARTag_pose, 1);
-%             training_corners_SR = splitData(app, X_train, num_training, num_LiDARTag_pose, num_tag);
-%             scan_NSNR = splitData(app, X_base_line, num_training, num_LiDARTag_pose, 1);
-%             scan_SNR = splitData(app, X_square_no_refinement, num_training, num_LiDARTag_pose, num_tag);
-%             scan_NSR = splitData(app, X_not_square_refinement, num_training, num_LiDARTag_pose, 1);
-%             scan_SR = splitData(app, X_train, num_training, num_LiDARTag_pose, num_tag);
-%             
-%             for j = 1:num_LiDARTag_pose
-%                 for i = 1:num_training  
-%                     current_corners_SNR = [scan(j).training_corners_SNR(i).corner(:).corner];
-%                     current_corners_SNR = [scan_SNR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), SNR_P, current_corners_SNR, 'm*', "training_SNR");
-%                     
-%                     current_corners_NSR = [scan(j).training_corners_NSR(i).corner(:).corner];
-%                     current_corners_NSR = [scan_NSR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), NSR_P, current_corners_NSR, 'c*', "training_NSR");
-%                     
-%                     current_corners_NSNR = [scan(j).training_corners_NSNR(i).corner(:).corner];
-%                     current_corners_NSNR = [scan_NSNR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), NSNR_P, current_corners_NSNR, 'b*', "training_NSNR");
-%                     
-%                     current_corners_SR = [scan(j).training_corners_SR(i).corner(:).corner];
-%                     current_corners_SR = [scan_SR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), SR_P, current_corners_SR, 'g*', "training_SR");
-%                     drawnow
-%                 end
-%              end
-%             
-%             if verification_flag
-%                 verification_scan = splitData(app, X_verification, num_verification, num_LiDARTag_pose, num_tag);
-%                 for i = 1:num_verification
-%                     for j = 1:num_LiDARTag_pose
-%                         current_corners = [verification_scan(j).dataset(i).corner(:).corner];
-%                         prjectBackToImage(app, verfication_fig_handles(i), SNR_P, current_corners, 'm*', "Verification_SNR");
-%                         prjectBackToImage(app, verfication_fig_handles(i), NSR_P, current_corners, 'c*', "Verification_NSR");
-%                         prjectBackToImage(app, verfication_fig_handles(i), NSNR_P, current_corners, 'b*', "Verification_NSNR");
-%                         prjectBackToImage(app, verfication_fig_handles(i), SR_P, current_corners, 'g*', "Verification_SR");
-%                     end
-%                 end
-%             end
-%                         training_corners_NSNR = splitData(app, X_base_line, num_training, num_LiDARTag_pose, 1);
-%             training_corners_SNR = splitData(app, X_square_no_refinement, num_training, num_LiDARTag_pose, num_tag);
-%             training_corners_NSR = splitData(app, X_not_square_refinement, num_training, num_LiDARTag_pose, 1);
-%             training_corners_SR = splitData(app, X_train, num_training, num_LiDARTag_pose, num_tag);
-scan_NSNR = splitData(X_base_line, num_training, num_LiDARTag_pose, 1);
-scan_SNR = splitData(X_square_no_refinement, num_training, num_LiDARTag_pose, num_tag);
-scan_NSR = splitData(X_not_square_refinement, num_training, num_LiDARTag_pose, 1);
-scan_SR = splitData(X_train, num_training, num_LiDARTag_pose, num_tag);
-
-for j = 1:num_LiDARTag_pose
-    for i = 1:num_training  
-%                     current_corners_SNR = [scan_SNR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), SNR_P, current_corners_SNR, 'm*', "training_SNR");
-%                     
-%                     current_corners_NSR = [scan_NSR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), NSR_P, current_corners_NSR, 'c*', "training_NSR");
-%                     
-%                     current_corners_NSNR = [scan_NSNR(j).dataset(i).corner(:).corner];
-%                     prjectBackToImage(app, training_fig_handles(i), NSNR_P, current_corners_NSNR, 'b*', "training_NSNR");
-
-        current_corners_SR = [scan_SR(j).dataset(i).corner(:).corner];
-        prjectBackToImage(training_img_fig_handles(i), SR_P, current_corners_SR, 5, 'g*', "training_SR", "not display", "Not-Clean");
-        drawnow
+    for j = 1:BagData(current_index).num_tag % which target
+        current_corners_SR = [BagData(current_index).lidar_target(j).scan(:).corners];
+        current_X_SR = [BagData(current_index).lidar_target(j).scan(:).pc_points];
+        prjectBackToImage(training_img_fig_handles(i), SR_P, current_corners_SR, 5, 'g*', "training_SR", "display", "Not-Clean");
+        prjectBackToImage(training_img_fig_handles(i), SR_P, current_X_SR, 3, 'r.', "training_SR", "display", "Not-Clean");
     end
  end
+drawnow
 
-if verification_flag
-    verification_scan_corner = splitData(X_verification, num_verification, num_LiDARTag_pose, num_tag);
-    for i = 1:num_verification
-        for j = 1:num_LiDARTag_pose
-            current_corners = [verification_scan_corner(j).dataset(i).corner(:).corner];
+% project validation results
+if validation_flag
+    for i = 1:opt.num_validation % which dataset
+        current_index = bag_validation_indices(i);
+        for j = 1:BagData(current_index).num_tag % which target
+            current_corners = [BagData(current_index).lidar_target(j).scan(:).corners];
+            current_target_pc = [BagData(current_index).lidar_target(j).scan(:).pc_points];
             
-            if size(verification_scan(j).dataset(i).payload_big, 1) ~= 4
-                current_payload_big = [verification_scan(j).dataset(i).payload_big; 
-                                       ones(1, size(verification_scan(j).dataset(i).payload_big, 2))];
-            else
-                current_payload_big = verification_scan(j).dataset(i).payload_big;
+            if size(current_corners, 1) ~= 4
+                current_corners = [current_corners; 
+                                   ones(1, size(current_corners, 2))];
             end
-            
-            if size(verification_scan(j).dataset(i).payload_small, 1) ~= 4
-                current_payload_small = [verification_scan(j).dataset(i).payload_small;
-                                         ones(1, size(verification_scan(j).dataset(i).payload_small, 2))];
-            else
-                current_payload_small = verification_scan(j).dataset(i).payload_small;
+
+            if size(current_target_pc, 1) ~= 4
+                current_target_pc = [current_target_pc; 
+                                     ones(1, size(current_target_pc, 2))];
             end
-            
-            prjectBackToImage(verfication_fig_handles(i), SR_P, current_corners, 5, 'g*', "Verification_SR", "display", "Not-Clean");
-            prjectBackToImage(verfication_fig_handles(i), SR_P, current_payload_big, 5, 'r.', "Verification_SR", "not display", "Not-Clean");
-            prjectBackToImage(verfication_fig_handles(i), SR_P, current_payload_small, 5, 'r.', "Verification_SR", "not display", "Not-Clean");
-%             
-%             prjectBackToImage(verfication_fig_handles(i), SR_P, verification_scan(j).dataset(i).payload_big, 5, 'r.', "Verification_SR", "display", "Not-Clean");
-%             prjectBackToImage(verfication_fig_handles(i), SR_P, verification_scan(j).dataset(i).payload_small, 5, 'r.', "Verification_SR", "display", "Not-Clean");
-            
+            prjectBackToImage(validation_fig_handles(i), SR_P, current_corners, 5, 'g*', ...
+                              "validation_SR", "display", "Not-Clean");
+            prjectBackToImage(validation_fig_handles(i), SR_P, current_target_pc, 5, 'r.', ...
+                              "validation_SR", "display", "Not-Clean");
         end
     end
 end
 
-%%% draw results
-% %             prjectBackToImage(app, app.P, X_train);
-for i = 1:size(test_pc_mat_list, 2)
-     prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "display", "Not-Clean")
+% project testing results
+% load testing images and testing pc mat
+testing_set_pc = loadTestingMatFiles(mat_file_path, test_pc_mat_list);
+for i = 1: size(bag_testing_list, 2)
+    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "display", "Not clean"); 
+    prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "display", "Not-Clean");
 end
+drawnow
 disp("********************************************")
-disp("Projected.")
+disp("Projected using:")
+disp(SR_P)
 disp("********************************************")
 
-SR_P
 
 
 

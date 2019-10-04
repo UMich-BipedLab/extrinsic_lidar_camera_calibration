@@ -1,18 +1,13 @@
-function X = regulizedFineTuneLiDARTagPose(params, X, Y, H_LT, P, correspondance_per_pose, display)
+function X = regulizedFineTuneLiDARTagPose(tag_size_array, X, Y, H_LT, P, correspondance_per_pose, display)
     theta_x = optimvar('theta_x', 1, 1,'LowerBound',-5,'UpperBound',5); % 1x1
     theta_y = optimvar('theta_y', 1, 1,'LowerBound',-5,'UpperBound',5); % 1x1
     theta_z = optimvar('theta_z', 1, 1,'LowerBound',-5,'UpperBound',5); % 1x1
     T = optimvar('T', 1, 3,'LowerBound',-0.1,'UpperBound',0.1);
     prob = optimproblem;
-    num_scan = size(X, 2)/correspondance_per_pose; % 4 correspondance per scan
+    num_scan = size(X, 2)/correspondance_per_pose; % 4 correspondance per pose
 
     for i = 1 : num_scan
-        if mod(i, 2) == 0
-            target_size = params.tag_size_biggest;
-        else
-            target_size = params.tag_size_small;
-        end
-        
+        target_size = tag_size_array(i);
         scan_num = correspondance_per_pose * (i-1) + 1;  
         f = fcn2optimexpr(@regulizedCostOfFineTuneLiDARTagPose, theta_x, theta_y, theta_z, T, ...
                          X(:,scan_num:scan_num+correspondance_per_pose-1), ...

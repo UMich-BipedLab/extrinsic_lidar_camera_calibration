@@ -1,4 +1,4 @@
-function [H_LC, P, cost] = optimize4Points(X, Y, intrinsic, display)
+function [H_LC, P, cost] = optimize4Points(opt, X, Y, intrinsic, display)
     theta_x = optimvar('theta_x', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
     theta_y = optimvar('theta_y', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
     theta_z = optimvar('theta_z', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
@@ -6,9 +6,9 @@ function [H_LC, P, cost] = optimize4Points(X, Y, intrinsic, display)
     prob = optimproblem;
     f = fcn2optimexpr(@cost4Points, theta_x, theta_y, theta_z, T, X, Y, intrinsic);
     prob.Objective = f;
-    x0.theta_x = 90;
-    x0.theta_y = 0;
-    x0.theta_z = 90;
+    x0.theta_x = opt(1);
+    x0.theta_y = opt(2);
+    x0.theta_z = opt(3);
     x0.T = [0 0 0];
     options = optimoptions('fmincon', 'MaxIter',5e2, 'TolX', 1e-12, 'Display','off', 'FunctionTolerance', 1e-8, 'MaxFunctionEvaluations', 3e4);
 

@@ -1,58 +1,36 @@
-function [before_scan, after_scan] = inAndOutBeforeAndAfter(X, Y, P1, P2, ...
-                num_verification, num_LiDARTag_pose, num_tag)
-%             correspondance_per_scan = 4;
-%             num_scan = size(X, 2)/correspondance_per_scan; % 4 correspondance per scan
-    scan_verification_Y = splitData(Y, num_verification, num_LiDARTag_pose, num_tag);
+function [count_no_refinement, count_refinement] = inAndOutBeforeAndAfter(bag_indices, opt_num_dataset, opt, bag_data, P1, P2)
+	for i = 1:opt_num_dataset % which dataset is this
+        current_index = bag_indices(i);
+        count_array_no_refinement = zeros(bag_data(current_index).num_tag, opt.num_scan);
+        count_array_refinement = zeros(bag_data(current_index).num_tag, opt.num_lidar_target_pose);
 
-    before_scan = [];
-    after_scan = [];
-     for i = 1:num_verification     
+        for j = 1:bag_data(current_index).num_tag % which tag in the validation dataset
+            for k=1:opt.num_lidar_target_pose % which scan in the validation dataset
+                current_camera_corners = [bag_data(current_index).camera_target(j).corners];
+                current_camera_corners = [current_camera_corners(:,1), current_camera_corners(:,2), current_camera_corners(:,4), current_camera_corners(:,3)];
 
-        before_count = 0;
-        after_count = 0;
-        size_big = 0;
-        size_small = 0;
-        for j = 1:num_LiDARTag_pose
-            current_X_small = [X(j).dataset(i).payload_small];
-            if size(current_X_small, 1) ~= 4
-                current_X_small = [current_X_small; ones(1,size(current_X_small,2))];
+                current_lidar_target_pc = [bag_data(current_index).lidar_target(j).scan(k).pc_points];
+                if size(current_lidar_target_pc, 1) ~= 4
+                    current_lidar_target_pc = [current_lidar_target_pc; ones(1,size(current_lidar_target_pc,2))];
+                end
+                projection_before_refinement = P1 * current_lidar_target_pc;
+                projection_before_refinement = projection_before_refinement ./projection_before_refinement(3,:);
+                [in_before, on_before] = inpolygon(projection_before_refinement(1,:)', projection_before_refinement(2,:)', ...
+                                                   current_camera_corners(1,:)' ,current_camera_corners(2,:)');
+
+                projection_after_refinement = P2 * current_lidar_target_pc;
+                projection_after_refinement = projection_after_refinement ./projection_after_refinement(3,:);
+                [in_after, on_after] = inpolygon(projection_after_refinement(1,:)', projection_after_refinement(2,:)', ...
+                                                 current_camera_corners(1,:)' ,current_camera_corners(2,:)');
+
+                count_array_no_refinement(j, k) =  numel(projection_before_refinement(in_before)) + numel(projection_before_refinement(on_before));
+                count_array_refinement(j, k) = numel(projection_after_refinement(in_after)) + numel(projection_after_refinement(on_after));
             end
-            
-            size_small = size_small + size(current_X_small, 2);
-            current_corners_small_Y = [scan_verification_Y(j).dataset(i).corner(1:4).corner];
-            current_corners_small_Y = [current_corners_small_Y(:,1), current_corners_small_Y(:,2), current_corners_small_Y(:,4), current_corners_small_Y(:,3)];
-            x_before_small = P1 * current_X_small;
-            x_before_small = x_before_small ./x_before_small(3,:);
-            [in_before_small, on_before_small] = inpolygon(x_before_small(1,:)', x_before_small(2,:)', ...
-                current_corners_small_Y(1,:)' ,current_corners_small_Y(2,:)');
-
-            x_after_small = P2 * current_X_small;
-            x_after_small = x_after_small ./x_after_small(3,:);
-            [in_after_small, on_after_small] = inpolygon(x_after_small(1,:)', x_after_small(2,:)', current_corners_small_Y(1,:)' ,current_corners_small_Y(2,:)');
-
-            current_X_big = [X(j).dataset(i).payload_big];
-            
-            if size(current_X_big, 1) ~= 4
-                current_X_big = [current_X_big; ones(1,size(current_X_big,2))];
-            end
-            
-            size_big = size_big + size(current_X_big, 2);
-            current_corners_big_Y = [scan_verification_Y(j).dataset(i).corner(5:8).corner];
-            current_corners_big_Y = [current_corners_big_Y(:,1), current_corners_big_Y(:,2), current_corners_big_Y(:,4), current_corners_big_Y(:,3)];
-            x_before_big = P1 * current_X_big;
-            x_before_big = x_before_big ./x_before_big(3,:);
-            [in_before_big, on_before_big] = inpolygon(x_before_big(1,:)', x_before_big(2,:)', ...
-                current_corners_big_Y(1,:)' ,current_corners_big_Y(2,:)');
-
-            x_after_big = P2 * current_X_big;
-            x_after_big = x_after_big ./x_after_big(3,:);
-            [in_after_big, on_after_big] = inpolygon(x_after_big(1,:)', x_after_big(2,:)', current_corners_big_Y(1,:)' ,current_corners_big_Y(2,:)');
-
-            before_count = before_count + numel(x_before_small(in_before_small)) + numel(x_before_small(on_before_small)) + numel(x_before_big(in_before_big)) + numel(x_before_big(on_before_big));
-            after_count = after_count + numel(x_after_small(in_after_small)) + numel(x_after_small(on_after_small)) + numel(x_after_big(in_after_big)) + numel(x_after_big(on_after_big));
         end
-        ave_count_before = (size_big + size_small - before_count)/(size_big + size_small);
-        ave_count_after = (size_big + size_small - after_count)/(size_big + size_small);
-        before_scan = [before_scan, ave_count_before];
-        after_scan = [after_scan, ave_count_after];
-     end
+        count_no_refinement(i).count = sum(sum(count_array_no_refinement, 2), 1); % total cost of this dataset
+        count_no_refinement(i).std = std(count_array_no_refinement'); % std of cost of each scan
+
+        count_refinement(i).count = sum(sum(count_array_refinement, 2), 1); % total cost of this dataset
+        count_refinement(i).std = std(count_array_refinement'); % std of cost of each scan
+	end
+end

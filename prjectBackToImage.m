@@ -3,7 +3,7 @@ function prjectBackToImage(image_handle, P, X, marker_size , marker_color, legen
         X = X';
     end
     if nargin < 7
-        clean=0;
+        clean = 0;
     else
         clean = strcmpi("clean", clean);
     end
@@ -26,6 +26,5 @@ function prjectBackToImage(image_handle, P, X, marker_size , marker_color, legen
     hold(image_handle, 'off');
     if display
         set(get(image_handle,'parent'),'visible','on');% show the current axes
-        axis 'equal'
     end
 end
