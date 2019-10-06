@@ -3,8 +3,8 @@
 This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration. We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
 
 
-**[IMPORTANT note]**
-ALL the code is still on the _dev branch_. Everything will be cleaned up and well-documented within a week or so (10/8 at latest). To run the testing code, please checkout the dev branch, place the test datasets in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/80a504d057bc2926b0783dc3f0a137f0d83db981/main.m#L61) in main.m, and then hit run!
+**[Super Quick Start]**
+To run the testing code, please clone this repo, place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/main.m#L43) in main.m, and then hit run!
 
 * Authors: Bruce JK Huang and Jessy W. Grizzle
 * Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
@@ -41,9 +41,14 @@ TODO
 https://www.brucerobot.com/
 
 
-## Installation (coming strong in a week)
-TODO
-
+## Installation 
+* Which toolboxes are used in this package: 
+  - MATLAB 2019a
+  - optimization_toolbox
+  - phased_array_system_toolbox
+  - robotics_system_toolbox
+  - signal_blocks
+* Dataset: download from [here](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset).
 
 ## Dataset 
 Please download point cloud mat files from [here](https://drive.google.com/drive/folders/1rI3vPvPOJ1ib4i1LMqw66habZEf4SwEr?usp=sharing) and put them into LiDARTag_data folder.
@@ -52,11 +57,22 @@ Please downlaod bagfiles from [here](https://drive.google.com/drive/folders/1qaw
 
 
 ## Running
-ALL the code are still on the dev branch. Everything will be cleaned up, well-documented merge to master branch by 10/1/2019. To run the testing code, please checkout to the dev branch and the put the dataset in the two folders mentioned above and then go to the main.m and then hit run!
-(if you happen to change the name of the folder, please change the [path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/320a56c0e751453f1c09fef8146775788c27f5fe/main.m#L61) in the main.m as well)
+**[quick start]** To run the testing code, please clone this repo, place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/main.m#L43) in main.m, and then hit run!
 
+**[Dataset structure]**
+Put _ALL information of datasets_ into [getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). 
+This funciton returns two data structure: TestData and BagData.
+- TestData contains bagfile and pc_file, where bagfile is the name of the bagfile and pc_file is mat files of _FULL_ scan of point cloud.
+- BagData contatins: 
+  - bagfile: name of the bagfile
+  - num_tag: how many tags in this dataset
+  - lidar_target
+    - pc_file: the name of the mat file of this target of point cloud
+    - tag_size: size of this target
+  - camera_target
+    - corners: corner coordinates of the camera targets
 
-## Parameters (coming strong in a week)
+## Important Parameters (coming strong in a week)
 TODO
 
 
