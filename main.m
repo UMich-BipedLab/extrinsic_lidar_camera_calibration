@@ -10,8 +10,6 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% parameters of user setting
-%%% random_select (0/1): randomly select training sets
-%%% trained_ids: a list of ids of training sets
 %%% skip (0/1/2):
 %        0: optimize lidar target's corners 
 %           and then calibrate 
@@ -31,9 +29,7 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-random_select = 0;
-trained_ids = [11, 12];
-skip = 2; 
+skip = 0; 
 display = 1; % show numerical results
 validation_flag = 1; % validate results
 base_line_method = 2;
@@ -68,7 +64,7 @@ mat_file_path = "LiDARTag_data/";
 opt.num_refinement = 4; % 4 rounds of refinement
 opt.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
 opt.num_scan = 3; % how many scans accumulated to optimize one LiDARTag pose (3)
-opt.num_training = 2; %%% how many training set to use (2)
+opt.num_training = 1; %%% how many training set to use (2)
 opt.num_validation = 7; % use how many different datasets to verify the calibration result
 
 
@@ -82,12 +78,16 @@ opt_H_TC.rpy_init = [90 0 90];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% training, validation and testing datasets
+%%% random_select (0/1): randomly select training sets
+%%% trained_ids: a list of ids of training sets
 % training sets (targets included): 
 %  -- used all of them to optimize a H_LC
 % validation sets (targets included): 
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-skip_indices = [1, 2, 3]; %% skip 
+random_select = 0;
+trained_ids = [11];
+skip_indices = [1, 2, 3, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();  %% get 
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
@@ -95,6 +95,7 @@ test_pc_mat_list = [TestData(:).pc_file];
 opt.num_validation = min(size(bag_with_tag_list, 2) - ...
                          length(skip_indices) - opt.num_training, ...
                          opt.num_validation);
+opt.num_training = min(length(trained_ids), opt.num_training);                    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % create figure handles
@@ -105,30 +106,34 @@ validation_pc_fig_handles = createFigHandle(opt.num_validation, "validation_pc")
 testing_fig_handles = createFigHandle(size(bag_testing_list, 2), "testing");
 
           
-% get training indices
-bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opt.num_training);
 
-% make sure they are not the same and not consists of undesire index
-while length(unique(bag_training_indices)) ~=  length(bag_training_indices) || ...
-        any(ismember(bag_training_indices, skip_indices)) 
-    bag_training_indices = randi([4, length(bag_with_tag_list)], 1, opt.num_training);
-end
+if random_select
+    % get training indices
+    bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opt.num_training);
 
-% overwrite
-if ~random_select
+    % make sure they are not the same and not consists of undesire index
+    while length(unique(bag_training_indices)) ~=  length(bag_training_indices) || ...
+            any(ismember(bag_training_indices, skip_indices)) 
+        bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opt.num_training);
+    end
+    
+    % get validation indices
+    bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+
+    % make sure they are not the same and not consists of undesire index
+    while length(unique(bag_validation_indices)) ~=  length(bag_validation_indices) || ...`
+          any(ismember(bag_validation_indices, skip_indices)) || ...
+          any(ismember(bag_validation_indices, bag_training_indices)) 
+       bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+    end
+else
+    % overwrite
     bag_training_indices = trained_ids;
-end
-
-% get validation indices
-bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
-
-% make sure they are not the same and not consists of undesire index
-while length(unique(bag_validation_indices)) ~=  length(bag_validation_indices) || ...`
-      any(ismember(bag_validation_indices, skip_indices)) || ...
-      any(ismember(bag_validation_indices, bag_training_indices)) 
-   bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+    bag_validation_indices = linspace(1, length(bag_with_tag_list), length(bag_with_tag_list));
+    bag_validation_indices([trained_ids skip_indices]) = [];
 end
 bag_chosen_indices = [bag_training_indices, bag_validation_indices];
+
 
 
 % save into results into folder         
