@@ -1,7 +1,5 @@
-function [cross_big_3d, edges]= KaessNewConstraintCorners(path, pc_mat, pc_iter)
-    d=0.805*sqrt(2);
-    pc = load(string(path) + string(pc_mat)); 
-    pnts = pc.point_cloud; % [scan, point, [X, Y, X, I, R]]
+function [cross_big_3d, edges]= KaessNewConstraintCorners(target_size, path, pc_mat, pc_iter)
+    d=target_size*sqrt(2);
 
     pc = load(string(path) + string(pc_mat)); 
     pnts = pc.point_cloud; % [scan, point, [X, Y, X, I, R]]
