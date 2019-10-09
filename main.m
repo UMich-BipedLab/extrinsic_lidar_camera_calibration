@@ -634,11 +634,11 @@ if validation_flag
                                      ones(1, size(current_target_pc, 2))];
             end
             prjectBackToImage(validation_fig_handles(i), SR_P, current_corners, 5, 'g*', ...
-                              "validation_SR", "not display", "Not-Clean");
+                              "validation_SR", "display", "Not-Clean");
             prjectBackToImage(validation_fig_handles(i), SNR_P, current_corners, 5, 'm*', ...
-                              "validation_SR", "not display", "Not-Clean");
+                              "validation_SR", "display", "Not-Clean");
             prjectBackToImage(validation_fig_handles(i), SR_P, current_target_pc, 5, 'r.', ...
-                              "validation_SR", "not display", "Not-Clean");
+                              "validation_SR", "display", "Not-Clean");
             showLinedAprilTag(validation_fig_handles(i), BagData(current_index).camera_target(j), "display");              
         end
     end
@@ -648,8 +648,8 @@ end
 % load testing images and testing pc mat
 testing_set_pc = loadTestingMatFiles(mat_file_path, test_pc_mat_list);
 for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "not display", "Not clean"); 
-    prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "not display", "Not-Clean");
+    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "display", "Not clean"); 
+    prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "display", "Not-Clean");
 end
 drawnow
 disp("********************************************") 
