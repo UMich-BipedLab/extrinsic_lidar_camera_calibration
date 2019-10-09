@@ -4,15 +4,15 @@ function X = regulizedFineTuneLiDARTagPose(tag_size_array, X, Y, H_LT, P, corres
     theta_z = optimvar('theta_z', 1, 1,'LowerBound',-5,'UpperBound',5); % 1x1
     T = optimvar('T', 1, 3,'LowerBound',-0.1,'UpperBound',0.1);
     prob = optimproblem;
-    num_scan = size(X, 2)/correspondance_per_pose; % 4 correspondance per pose
+    num_pose = size(X, 2)/correspondance_per_pose; % 4 correspondance per pose
 
-    for i = 1 : num_scan
+    for i = 1 : num_pose
         target_size = tag_size_array(i);
-        scan_num = correspondance_per_pose * (i-1) + 1;  
+        pose_num = correspondance_per_pose * (i-1) + 1;  
         f = fcn2optimexpr(@regulizedCostOfFineTuneLiDARTagPose, theta_x, theta_y, theta_z, T, ...
-                         X(:,scan_num:scan_num+correspondance_per_pose-1), ...
-                         Y(:,scan_num:scan_num+correspondance_per_pose-1), ...
-                         H_LT(:, scan_num:scan_num+correspondance_per_pose-1), P, target_size);
+                         X(:,pose_num:pose_num+correspondance_per_pose-1), ...
+                         Y(:,pose_num:pose_num+correspondance_per_pose-1), ...
+                         H_LT(:, pose_num:pose_num+correspondance_per_pose-1), P, target_size);
         prob.Objective = f;
         x0.theta_x = 0;
         x0.theta_y = 0;
@@ -34,6 +34,6 @@ function X = regulizedFineTuneLiDARTagPose(tag_size_array, X, Y, H_LT, P, corres
             disp('cost:')
             disp(fval)
         end
-        X(:,scan_num:scan_num+correspondance_per_pose-1) = H_fine_tune * X(:,scan_num:scan_num+correspondance_per_pose-1);
+        X(:,pose_num:pose_num+correspondance_per_pose-1) = H_fine_tune * X(:,pose_num:pose_num+correspondance_per_pose-1);
     end
 end

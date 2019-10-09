@@ -27,7 +27,7 @@ function X = regulizedFineTuneKaessCorners(X, Y, edges_points, P, correspondance
         H_fine_tune(1:3, 1:3) = R_final;
         H_fine_tune(1:3, 4) = sol.T';
         if display
-            disp('new H_LT: ')
+            disp('Kaess new H_LT: ')
             disp(H_fine_tune)
         end
 
