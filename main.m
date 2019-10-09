@@ -19,7 +19,7 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% validation_flag (0/1): validate the calibration result
 %%% base_line_method (1/2): 
 %                   1: ransac edges seperately and the intersect edges to
-%                      estimate corners (will add back in a bit)
+%                      estimate corners
 %                   2: apply geometry contrain to estimate the corners
 %%% correspondance_per_pose (int): how many correspondance on a target
 %%% calibration_method: 
@@ -35,9 +35,16 @@ validation_flag = 1; % validate results
 base_line_method = 2;
 correspondance_per_pose = 4; % 4 correspondance on a target
 calibration_method = "4 points";
-load_dir = "Paper-C71/02-Oct-2019 13:41:26/";
+load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
 bag_file_path = "bagfiles/";
 mat_file_path = "LiDARTag_data/";
+
+% save into results into folder         
+save_name = "NewPaper";
+diary NewPaper_diary % save terminal outputs
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% parameters for optimization of lidar targets
@@ -61,19 +68,18 @@ mat_file_path = "LiDARTag_data/";
 % num_training: how many training sets to optimize H_LC
 % num_validation: how many validation set to verify the optimized H_LC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-opt.num_refinement = 4; % 4 rounds of refinement
-opt.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
-opt.num_scan = 3; % how many scans accumulated to optimize one LiDARTag pose (3)
-opt.num_training = 1; %%% how many training set to use (2)
-opt.num_validation = 7; % use how many different datasets to verify the calibration result
+opts.num_refinement = 5 ; % 4 rounds of refinement
+opts.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
+opts.num_scan = 3; % how many scans accumulated to optimize one LiDARTag pose (3)
+opts.num_training = 1; %%% how many training set to use (2)
+opts.num_validation = 7; % use how many different datasets to verify the calibration result
 
-
-opt_H_TL.rpy_init = [45 2 3];
-opt_H_TL.T_init = [2, 0, 0];
-opt_H_TL.H_init = eye(4);
-opt_H_TL.method = "Constraint Customize"; 
-opt_H_TL.UseCentroid = 1;
-opt_H_TC.rpy_init = [90 0 90];
+opt.H_TL.rpy_init = [45 2 3];
+opt.H_TL.T_init = [2, 0, 0];
+opt.H_TL.H_init = eye(4);
+opt.H_TL.method = "Constraint Customize"; 
+opt.H_TL.UseCentroid = 1;
+opt.H_LC.rpy_init = [90 0 90];
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,44 +93,47 @@ opt_H_TC.rpy_init = [90 0 90];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
 trained_ids = [11];
+skip_indices = [1, 2, 3, 11, 12]; %% skip non-standard 
 skip_indices = [1, 2, 3, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();  %% get 
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
 test_pc_mat_list = [TestData(:).pc_file];
-opt.num_validation = min(size(bag_with_tag_list, 2) - ...
-                         length(skip_indices) - opt.num_training, ...
-                         opt.num_validation);
-opt.num_training = min(length(trained_ids), opt.num_training);                    
+opts.num_training = length(trained_ids); 
+opts.num_validation = min(size(bag_with_tag_list, 2) - ...
+                         length(skip_indices) - opts.num_training, ...
+                         opts.num_validation);
+% opts.num_training = min(length(trained_ids), opts.num_training);     
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % create figure handles
-training_img_fig_handles = createFigHandle(opt.num_training, "training_img");
-training_pc_fig_handles = createFigHandle(opt.num_training, "training_pc");
-validation_fig_handles = createFigHandle(opt.num_validation, "validation_img");
-validation_pc_fig_handles = createFigHandle(opt.num_validation, "validation_pc");
+training_img_fig_handles = createFigHandle(opts.num_training, "training_img");
+training_pc_fig_handles = createFigHandle(opts.num_training, "training_pc");
+validation_fig_handles = createFigHandle(opts.num_validation, "validation_img");
+validation_pc_fig_handles = createFigHandle(opts.num_validation, "validation_pc");
 testing_fig_handles = createFigHandle(size(bag_testing_list, 2), "testing");
 
           
 
 if random_select
     % get training indices
-    bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opt.num_training);
+    bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opts.num_training);
 
     % make sure they are not the same and not consists of undesire index
     while length(unique(bag_training_indices)) ~=  length(bag_training_indices) || ...
             any(ismember(bag_training_indices, skip_indices)) 
-        bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opt.num_training);
+        bag_training_indices = randi([1, length(bag_with_tag_list)], 1, opts.num_training);
     end
     
     % get validation indices
-    bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+    bag_validation_indices = randi(length(bag_with_tag_list), 1, opts.num_validation);
 
     % make sure they are not the same and not consists of undesire index
     while length(unique(bag_validation_indices)) ~=  length(bag_validation_indices) || ...`
           any(ismember(bag_validation_indices, skip_indices)) || ...
           any(ismember(bag_validation_indices, bag_training_indices)) 
-       bag_validation_indices = randi(length(bag_with_tag_list), 1, opt.num_validation);
+       bag_validation_indices = randi(length(bag_with_tag_list), 1, opts.num_validation);
     end
 else
     % overwrite
@@ -135,10 +144,6 @@ end
 bag_chosen_indices = [bag_training_indices, bag_validation_indices];
 
 
-
-% save into results into folder         
-save_name = "Paper-C71";
-diary Paper-C71-diary % save terminal outputs
 
 ans_error_big_matrix = [];
 ans_counting_big_matrix = [];
@@ -166,26 +171,26 @@ disp("********************************************")
 fprintf("-- validation flag: %i \n", validation_flag)
 fprintf("-- number of training set: %i\n", size(bag_training_indices, 2))
 fprintf("-- number of validation set: %i\n", size(bag_validation_indices, 2))
-fprintf("-- number of refinement: %i\n", opt.num_refinement)
-fprintf("-- number of LiDARTag's poses: %i\n", opt.num_lidar_target_pose)
-fprintf("-- number of scan to optimize a LiDARTag pose: %i\n", opt.num_scan)
+fprintf("-- number of refinement: %i\n", opts.num_refinement)
+fprintf("-- number of LiDARTag's poses: %i\n", opts.num_lidar_target_pose)
+fprintf("-- number of scan to optimize a LiDARTag pose: %i\n", opts.num_scan)
 c = datestr(datetime); 
 save_dir = save_name + "/" + c + "/";
 
 
 if ~skip
     mkdir(save_dir);
-    save(save_dir + 'saved_parameters.mat', 'opt', 'validation_flag');
+    save(save_dir + 'saved_parameters.mat', 'opts', 'validation_flag');
     save(save_dir + 'saved_chosen_indices.mat', 'skip_indices', 'bag_training_indices', 'bag_validation_indices', 'bag_chosen_indices');
 end
 
 % loading training image
-for i = 1:opt.num_training
+for i = 1:opts.num_training
     current_index = bag_training_indices(i);
     loadBagImg(training_img_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
 end
 
-for i = 1:opt.num_validation
+for i = 1:opts.num_validation
     current_index = bag_validation_indices(i);
     loadBagImg(validation_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
 end
@@ -217,8 +222,8 @@ else
     Y_base_line = [];
     N_base_line = [];
     
-    for i = 1:opt.num_lidar_target_pose
-        fprintf("--- Working on scan: %i/%i\n", i, opt.num_lidar_target_pose)
+    for i = 1:opts.num_lidar_target_pose
+        fprintf("--- Working on scan: %i/%i\n", i, opts.num_lidar_target_pose)
         validation_counter = 1;
         for k = 1:length(bag_chosen_indices)
             current_index = bag_chosen_indices(k);
@@ -245,12 +250,12 @@ else
 
                 for j = 1:BagData(current_index).num_tag
                     image_num = i;
-                    pc_iter = opt.num_scan*(i-1) + 1;
+                    pc_iter = opts.num_scan*(i-1) + 1;
                     
                     % optimize lidar targets corners
-                    [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt_H_TL, ...
+                    [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt.H_TL, ...
                                                          mat_file_path, BagData(current_index), ...
-                                                         pc_iter, opt.num_scan);
+                                                         pc_iter, opts.num_scan);
                     % draw camera targets 
                     BagData(current_index).camera_target(j).four_corners_line = ...
                                                 point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
@@ -274,9 +279,14 @@ else
                 fprintf(" Got training set: %s\n", bag_with_tag_list(current_index))
                 
                 % base line
-                pc_iter = opt.num_scan*(i-1) + 1;
-                [corners_big, edges]= KaessNewConstraintCorners(mat_file_path, ...
-                                        BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                pc_iter = opts.num_scan*(i-1) + 1;
+                if base_line_method==1
+                    [corners_big, edges] = KaessNewCorners(BagData(current_index).lidar_target(1).tag_size, ...
+                                            mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                elseif base_line_method==2
+                    [corners_big, edges]= KaessNewConstraintCorners(BagData(current_index).lidar_target(1).tag_size,...
+                                            mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                end
                 X_base_line = [X_base_line, corners_big];
                 Y_base_line = [Y_base_line, BagData(current_index).camera_target(1).corners]; %% use big tag
                 X_base_line_edge_points = [X_base_line_edge_points, edges];
@@ -284,7 +294,7 @@ else
 
             else
                 %%% validation set
-                if validation_counter > opt.num_validation
+                if validation_counter > opts.num_validation
                     break;
                 end
 
@@ -293,10 +303,10 @@ else
 
                 for j = 1:BagData(current_index).num_tag
                     image_num = i;
-                    pc_iter = opt.num_scan*(i-1) + 1; 
-                    [BagData(current_index), ~] = get4CornersReturnHLT(i, j, opt_H_TL, ...
+                    pc_iter = opts.num_scan*(i-1) + 1; 
+                    [BagData(current_index), ~] = get4CornersReturnHLT(i, j, opt.H_TL, ...
                                                          mat_file_path, BagData(current_index), ...
-                                                         pc_iter, opt.num_scan);
+                                                         pc_iter, opts.num_scan);
 
                     BagData(current_index).camera_target(j).four_corners_line = ...
                                                 point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
@@ -343,29 +353,35 @@ if ~(skip == 2)
         case "4 points"
             %%%  one shot calibration (*-NR)
             % square withOUT refinement
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init,...
+            disp('---------------------')
+            disp('SNR ...')
+            disp('---------------------')
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
                                                                     X_square_no_refinement, Y_train, ...
                                                                     intrinsic_matrix, display); 
             % NOT square withOUT refinement
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+            disp('---------------------')
+            disp('NSNR ...')
+            disp('---------------------')
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ... 
                                                                        intrinsic_matrix, display); 
 
-            for i = 0: opt.num_refinement-1
+            for i = 0: opts.num_refinement-1
                 disp('---------------------')
                 disp(' Optimizing H_LC ...')
                 disp('---------------------')
 
                 % square with refinement
-                [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                      X_train, Y_train, ... 
                                                                      intrinsic_matrix, display); 
                 % NOT square with refinement
-                [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+                [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                         X_not_square_refinement, Y_base_line, ...
                                                                         intrinsic_matrix, display); 
                 
-                if i == opt.num_refinement-1
+                if i == opts.num_refinement-1
                     break;
                 else
                     disp('------------------')
@@ -382,22 +398,22 @@ if ~(skip == 2)
 
         case "IoU"
             % one shot calibration (*-NR)
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                     X_square_no_refinement, Y_train, ...
                                                                     intrinsic_matrix, display); % square withOUT refinement
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt_H_TC.rpy_init, ...
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ...
                                                                        intrinsic_matrix, display); % NOT square withOUT refinement
 
             if Alternating
-                for i = 1: opt.num_refinement
+                for i = 1: opts.num_refinement
                     disp('---------------------')
                     disp(' Optimizing H_LC ...')
                     disp('---------------------')
 
                     [SR_H_LC, SR_P, SR_opt_total_cost] = optimizeIoU(X_train, Y_train, intrinsic_matrix); % square with refinement
                     [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimizeIoU(X_not_square_refinement, Y_base_line, intrinsic_matrix); % NOT square with refinement
-                    if i == opt.num_refinement
+                    if i == opts.num_refinement
                         break;
                     else
                         disp('------------------')
@@ -450,8 +466,8 @@ disp("========= Error =========")
 disp(' Training Total Error (pixel)')
 disp(NSNR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
-disp(NSNR_opt_total_cost/size(Y_base_line, 2)) % 2 tags, 4 corners
-ans_error_submatrix = [bag_training_indices(1); NSNR_opt_total_cost/size(Y_base_line, 2)];
+disp(NSNR_opt_total_cost/sqrt(size(Y_base_line, 2)))
+ans_error_submatrix = [bag_training_indices(1); NSNR_opt_total_cost/sqrt(size(Y_base_line, 2))];
 
 disp("****************** NSR-training ******************")
 disp('NSR_H_LC: ')
@@ -465,8 +481,8 @@ disp("========= Error =========")
 disp(' Training Total Error (pixel)')
 disp(NSR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
-disp(NSR_opt_total_cost/size(Y_base_line, 2)) % 2 tags, 4 corners
-ans_error_submatrix = [ans_error_submatrix; NSR_opt_total_cost/size(Y_base_line, 2)];
+disp(NSR_opt_total_cost/sqrt(size(Y_base_line, 2))) 
+ans_error_submatrix = [ans_error_submatrix; NSR_opt_total_cost/sqrt(size(Y_base_line, 2))];
 
 disp("****************** SNR-training ******************")
 disp('SNR_H_LC: ')
@@ -480,8 +496,8 @@ disp("========= Error =========")
 disp(' Training Total Error (pixel)')
 disp(SNR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
-disp(SNR_opt_total_cost/size(Y_train, 2)) % 2 tags, 4 corners
-ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
+disp(SNR_opt_total_cost/sqrt(size(Y_train, 2)))
+ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/sqrt(size(Y_train, 2))];
 
 disp("****************** SR-training ******************")
 disp('H_LC: ')
@@ -495,8 +511,8 @@ disp("========= Error =========")
 disp(' Training Total Error (pixel)')
 disp(SR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
-disp(SR_opt_total_cost/size(Y_train, 2)) % 2 tags, 4 corners
-ans_error_submatrix = [ans_error_submatrix; SR_opt_total_cost/size(Y_base_line, 2)];
+disp(SR_opt_total_cost/sqrt(size(Y_train, 2)))
+ans_error_submatrix = [ans_error_submatrix; SR_opt_total_cost/sqrt(size(Y_train, 2))];
 ans_error_big_matrix = [ans_error_submatrix];
 
 if length(bag_training_indices)>1
@@ -509,45 +525,47 @@ end
 
 %%% verify corner accuracy
 if validation_flag
-    SR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, SR_P);
-    NSR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, NSR_P);
-    SNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, SNR_P);
-    NSNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opt, BagData, NSNR_P);
+    SR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, SR_P);
+    SNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, SNR_P);
+    NSR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, NSR_P);
+    NSNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, NSNR_P);
 
     [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
-                                                         opt.num_training, opt, BagData, SNR_P, SR_P);
+                                                         opts.num_training, opts, BagData, SNR_P, SR_P);
     [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
-                                                         opt.num_training, opt, BagData, NSNR_P, NSR_P);
+                                                         opts.num_training, opts, BagData, NSNR_P, NSR_P);
     [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
-                                                         opt.num_validation, opt, BagData, SNR_P, SR_P);
+                                                         opts.num_validation, opts, BagData, SNR_P, SR_P);
     [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
-                                                         opt.num_validation, opt, BagData, NSNR_P, NSR_P);
+                                                         opts.num_validation, opts, BagData, NSNR_P, NSR_P);
 end
 
 
 if validation_flag
     disp("***************** validation Error*****************")
-    for i = 1:opt.num_validation
+    for i = 1:opts.num_validation
         disp('------')
         current_index = bag_validation_indices(i);
         fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
         ans_error_submatrix = [bag_validation_indices(i)];
         disp("-- Error Per Corner (pixel)")
         disp(' NSNR validation Error Per Corner (pixel)')
-        disp(NSNR_validation_cost(i).total_cost/ size(Y_validation, 2))
-        ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
+        disp(NSNR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
+        ans_error_submatrix = [ans_error_submatrix; NSNR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
         disp(' NSR validation Error Per Corner (pixel)')
-        disp(NSR_validation_cost(i).total_cost/ size(Y_validation, 2))
-        ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
+        disp(NSR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
+        ans_error_submatrix = [ans_error_submatrix; NSR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
         disp(' SNR validation Error Per Corner (pixel)')
-        disp(SNR_validation_cost(i).total_cost/ size(Y_validation, 2))
-        ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
+        disp(SNR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
+        ans_error_submatrix = [ans_error_submatrix; SNR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
         disp(' SR validation Error Per Corner (pixel)')
-        disp(SR_validation_cost(i).total_cost/ size(Y_validation, 2))
-        ans_error_submatrix = [ans_error_submatrix; SNR_opt_total_cost/size(Y_base_line, 2)];
+        disp(SR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
+        ans_error_submatrix = [ans_error_submatrix; SR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
         ans_error_big_matrix = [ans_error_big_matrix, ans_error_submatrix];
     end
     
+    
+    %{
     disp("***************** Training point counting *****************")
     disp("project full pc (SR)")
     disp(struct2table(t_SR_count))
@@ -574,6 +592,7 @@ if validation_flag
     disp(([NSR_count(:).count] - [NSNR_count(:).count])./[NSNR_count(:).count])
     disp(([SR_count(:).count] - [SNR_count(:).count])./[SNR_count(:).count])
     disp("********************************************")
+    %}
 end
 
 
@@ -582,22 +601,25 @@ if ~validation_flag
 end
 
 %%% draw results
-% project training results
-for i = 1:opt.num_training % which dataset
+% project training target points 
+for i = 1:opts.num_training % which dataset
     current_index = bag_training_indices(i);
 
     for j = 1:BagData(current_index).num_tag % which target
         current_corners_SR = [BagData(current_index).lidar_target(j).scan(:).corners];
         current_X_SR = [BagData(current_index).lidar_target(j).scan(:).pc_points];
         prjectBackToImage(training_img_fig_handles(i), SR_P, current_corners_SR, 5, 'g*', "training_SR", "display", "Not-Clean");
+        prjectBackToImage(training_img_fig_handles(i), SNR_P, current_corners_SR, 5, 'm*', "training_SR", "display", "Not-Clean");
         prjectBackToImage(training_img_fig_handles(i), SR_P, current_X_SR, 3, 'r.', "training_SR", "display", "Not-Clean");
+        
+        showLinedAprilTag(training_img_fig_handles(i), BagData(current_index).camera_target(j), "display");
     end
  end
 drawnow
 
 % project validation results
 if validation_flag
-    for i = 1:opt.num_validation % which dataset
+    for i = 1:opts.num_validation % which dataset
         current_index = bag_validation_indices(i);
         for j = 1:BagData(current_index).num_tag % which target
             current_corners = [BagData(current_index).lidar_target(j).scan(:).corners];
@@ -613,9 +635,12 @@ if validation_flag
                                      ones(1, size(current_target_pc, 2))];
             end
             prjectBackToImage(validation_fig_handles(i), SR_P, current_corners, 5, 'g*', ...
-                              "validation_SR", "display", "Not-Clean");
+                              "validation_SR", "not display", "Not-Clean");
+            prjectBackToImage(validation_fig_handles(i), SNR_P, current_corners, 5, 'm*', ...
+                              "validation_SR", "not display", "Not-Clean");
             prjectBackToImage(validation_fig_handles(i), SR_P, current_target_pc, 5, 'r.', ...
-                              "validation_SR", "display", "Not-Clean");
+                              "validation_SR", "not display", "Not-Clean");
+            showLinedAprilTag(validation_fig_handles(i), BagData(current_index).camera_target(j), "display");              
         end
     end
 end
@@ -624,13 +649,22 @@ end
 % load testing images and testing pc mat
 testing_set_pc = loadTestingMatFiles(mat_file_path, test_pc_mat_list);
 for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "display", "Not clean"); 
-    prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "display", "Not-Clean");
+    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "not display", "Not clean"); 
+    prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "not display", "Not-Clean");
 end
 drawnow
-disp("********************************************")
+disp("********************************************") 
 disp("Projected using:")
 disp(SR_P)
+disp('H_LC: ')
+disp(' R:')
+disp(SR_H_LC(1:3, 1:3))
+disp(' RPY (XYZ):')
+disp(rad2deg(rotm2eul(SR_H_LC(1:3, 1:3), "XYZ")))
+disp(' T:')
+disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
+disp("Error matrix")
+disp(ans_error_big_matrix)
 disp("********************************************")
 
 
