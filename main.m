@@ -92,7 +92,7 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [8]; % use 4, 7, 11
+trained_ids = [11]; % use 4, 8, 11
 skip_indices = [1, 2, 3, 5, 6, 7, 9, 10, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();  %% get 
 bag_with_tag_list  = [BagData(:).bagfile];
@@ -662,8 +662,6 @@ disp(' RPY (XYZ):')
 disp(rad2deg(rotm2eul(SR_H_LC(1:3, 1:3), "XYZ")))
 disp(' T:')
 disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
-disp("Error matrix")
-disp(ans_error_big_matrix)
 disp("********************************************")
 
 
