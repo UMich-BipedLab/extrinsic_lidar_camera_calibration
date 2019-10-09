@@ -14,5 +14,5 @@ function cost = regulizedCostOfFineTuneKaessCorners(theta_x, theta_y, theta_z, T
     total_cost = sum(cost_LU) + sum(cost_LL) + sum(cost_RU) + sum(cost_RL); % four sides of the squares
 
 
-    cost = norm(C_X_transformed(1:2,:) - Y(1:2,:), 'fro') + 1*total_cost;
+    cost = norm(C_X_transformed(1:2,:) - Y(1:2,:), 'fro') + 0.005*total_cost;
 end
