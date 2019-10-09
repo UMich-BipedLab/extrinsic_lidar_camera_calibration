@@ -92,9 +92,8 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [11];
-skip_indices = [1, 2, 3, 11, 12]; %% skip non-standard 
-skip_indices = [1, 2, 3, 12]; %% skip non-standard 
+trained_ids = [8]; % use 4, 7, 11
+skip_indices = [1, 2, 3, 5, 6, 7, 9, 10, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();  %% get 
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
