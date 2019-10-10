@@ -35,7 +35,7 @@ validation_flag = 1; % validate results
 base_line_method = 2;
 correspondance_per_pose = 4; % 4 correspondance on a target
 calibration_method = "4 points";
-load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
+load_dir = "NewPaper/09-Oct-2019 23:12:52/";
 bag_file_path = "bagfiles/";
 mat_file_path = "LiDARTag_data/";
 
@@ -370,11 +370,18 @@ if ~(skip == 2)
                 disp('---------------------')
                 disp(' Optimizing H_LC ...')
                 disp('---------------------')
-
+                
+                
+                disp('---------------------')
+                disp('--- SR_H_LC ...')
+                disp('---------------------')
                 % square with refinement
                 [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                      X_train, Y_train, ... 
-                                                                     intrinsic_matrix, display); 
+                                                                     intrinsic_matrix, display);
+                disp('---------------------')
+                disp('--- NSR_H_LC ...')
+                disp('---------------------')                                                 
                 % NOT square with refinement
                 [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                         X_not_square_refinement, Y_base_line, ...
@@ -384,14 +391,17 @@ if ~(skip == 2)
                     break;
                 else
                     disp('------------------')
-                    disp(' Refining H_LT ...')
+                    disp(' Refining SR_H_LC ...')
                     disp('------------------')
                     X_train = regulizedFineTuneLiDARTagPose(train_tag_size_array, ...
                                                             X_train, Y_train, H_LT_big, SR_P, ...
                                                             correspondance_per_pose, display);
+                    disp('------------------')
+                    disp(' Refining NSR_H_LC ...')
+                    disp('------------------')
                     X_not_square_refinement = regulizedFineTuneKaessCorners(X_not_square_refinement, Y_base_line,...
-                                                                            X_base_line_edge_points, NSR_P, ...
-                                                                            correspondance_per_pose, display);
+                                        X_base_line_edge_points, NSR_P, ...
+                                        correspondance_per_pose, display);
                 end
             end
 
@@ -521,7 +531,9 @@ if length(bag_training_indices)>1
         ans_error_big_matrix = [ans_error_big_matrix, ans_error_submatrix];
     end
 end
-
+% SR_P= [  340.7881 -603.9248   37.4994   -1.2421;
+%   323.2025   17.3725 -578.7682 -130.9700;
+%     0.9904    0.0374    0.1332   -0.0486];
 %%% verify corner accuracy
 if validation_flag
     SR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, SR_P);
@@ -529,14 +541,14 @@ if validation_flag
     NSR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, NSR_P);
     NSNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, validation_num_tag_array, opts, BagData, NSNR_P);
 
-    [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
-                                                         opts.num_training, opts, BagData, SNR_P, SR_P);
-    [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
-                                                         opts.num_training, opts, BagData, NSNR_P, NSR_P);
-    [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
-                                                         opts.num_validation, opts, BagData, SNR_P, SR_P);
-    [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
-                                                         opts.num_validation, opts, BagData, NSNR_P, NSR_P);
+%     [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
+%                                                          opts.num_training, opts, BagData, SNR_P, SR_P);
+%     [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
+%                                                          opts.num_training, opts, BagData, NSNR_P, NSR_P);
+%     [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
+%                                                          opts.num_validation, opts, BagData, SNR_P, SR_P);
+%     [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
+%                                                          opts.num_validation, opts, BagData, NSNR_P, NSR_P);
 end
 
 
