@@ -22,5 +22,5 @@ function cost = regulizedCostOfFineTuneLiDARTagPose(theta_x, theta_y, theta_z, T
     end
     total_cost = cost_x + cost_y + cost_z;
 %     cost = norm(C_X_transformed(1:2,:) - Y(1:2,:), 'fro') + 1e7*total_cost; %1e10
-    cost = norm(C_X_transformed(1:2,:) - Y(1:2,:), 'fro') + 1e9*total_cost; %1e10
+    cost = norm(C_X_transformed(1:2,:) - Y(1:2,:), 'fro') + 1e10*total_cost; %1e10
 end
