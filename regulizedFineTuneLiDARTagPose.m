@@ -34,6 +34,9 @@ function X = regulizedFineTuneLiDARTagPose(tag_size_array, X, Y, H_LT, P, corres
             disp('cost:')
             disp(fval)
         end
+%         dbstop in regulizedFineTuneLiDARTagPose at 40 if fval>=100
+%         dbstop in regulizedFineTuneLiDARTagPose at 40 if det(H_fine_tune)==1
+        %regulizedCostOfFineTuneLiDARTagPose(sol.theta_x, sol.theta_y, sol.theta_z, sol.T, X(:,pose_num:pose_num+correspondance_per_pose-1), Y(:,pose_num:pose_num+correspondance_per_pose-1),  H_LT(:, pose_num:pose_num+correspondance_per_pose-1), P, target_size)
         X(:,pose_num:pose_num+correspondance_per_pose-1) = H_fine_tune * X(:,pose_num:pose_num+correspondance_per_pose-1);
     end
 end
