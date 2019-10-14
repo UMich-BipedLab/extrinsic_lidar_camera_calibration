@@ -36,12 +36,13 @@ base_line_method = 2;
 correspondance_per_pose = 4; % 4 correspondance on a target
 calibration_method = "4 points";
 load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
+load_dir = "NewPaper/14-Oct-2019 10:52:55/";
 bag_file_path = "bagfiles/";
 mat_file_path = "LiDARTag_data/";
 
 % save into results into folder         
 save_name = "NewPaper";
-diary NewPaper_diary % save terminal outputs
+diary Debug % save terminal outputs
 
 
 
@@ -70,10 +71,16 @@ diary NewPaper_diary % save terminal outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 opts.num_refinement = 5 ; % 4 rounds of refinement
 opts.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
-opts.num_scan = 3; % how many scans accumulated to optimize one LiDARTag pose (3)
+opts.num_scan = 5; % how many scans accumulated to optimize one LiDARTag pose (3)
 opts.num_training = 1; %%% how many training set to use (2)
 opts.num_validation = 7; % use how many different datasets to verify the calibration result
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% optimization parameters
+%   H_TL: optimization for LiDAR target to ideal frame to get corners
+%   H_LC: optimization for LiDAR to camera transformation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 opt.H_TL.rpy_init = [45 2 3];
 opt.H_TL.T_init = [2, 0, 0];
 opt.H_TL.H_init = eye(4);
@@ -92,10 +99,10 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [11];
+trained_ids = [5];
 skip_indices = [1, 2, 3, 11, 12]; %% skip non-standard 
 skip_indices = [1, 2, 3, 12]; %% skip non-standard 
-[BagData, TestData] = getBagData();  %% get 
+[BagData, TestData] = getBagData();
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
 test_pc_mat_list = [TestData(:).pc_file];
@@ -107,14 +114,16 @@ opts.num_validation = min(size(bag_with_tag_list, 2) - ...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+disp("Refining corners of camera targets ...")
+BagData = refineImageCorners(bag_file_path, BagData, 'not display');
+
+
 % create figure handles
 training_img_fig_handles = createFigHandle(opts.num_training, "training_img");
 training_pc_fig_handles = createFigHandle(opts.num_training, "training_pc");
 validation_fig_handles = createFigHandle(opts.num_validation, "validation_img");
 validation_pc_fig_handles = createFigHandle(opts.num_validation, "validation_pc");
 testing_fig_handles = createFigHandle(size(bag_testing_list, 2), "testing");
-
-          
 
 if random_select
     % get training indices
@@ -142,8 +151,6 @@ else
     bag_validation_indices([trained_ids skip_indices]) = [];
 end
 bag_chosen_indices = [bag_training_indices, bag_validation_indices];
-
-
 
 ans_error_big_matrix = [];
 ans_counting_big_matrix = [];
@@ -187,12 +194,12 @@ end
 % loading training image
 for i = 1:opts.num_training
     current_index = bag_training_indices(i);
-    loadBagImg(training_img_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
+    loadBagImg(training_img_fig_handles(i), bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
 end
 
 for i = 1:opts.num_validation
     current_index = bag_validation_indices(i);
-    loadBagImg(validation_fig_handles(i), bag_file_path + bag_with_tag_list(current_index), "not display", "not clean");
+    loadBagImg(validation_fig_handles(i), bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
 end
 
 
@@ -260,6 +267,7 @@ else
                     BagData(current_index).camera_target(j).four_corners_line = ...
                                                 point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
                     showLinedLiDARTag(training_pc_fig_handles(k), ...
+                                      BagData(current_index).bagfile, ...
                                       BagData(current_index).lidar_target(j).scan(i), "display");
                     showLinedAprilTag(training_img_fig_handles(k), ...
                                       BagData(current_index).camera_target(j), "display");
@@ -311,6 +319,7 @@ else
                     BagData(current_index).camera_target(j).four_corners_line = ...
                                                 point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
                     showLinedLiDARTag(validation_pc_fig_handles(validation_counter), ...
+                                      BagData(current_index).bagfile, ...
                                       BagData(current_index).lidar_target(j).scan(i), "display");
                     showLinedAprilTag(validation_fig_handles(validation_counter), ...
                                       BagData(current_index).camera_target(j), "display");
@@ -356,9 +365,12 @@ if ~(skip == 2)
             disp('---------------------')
             disp('SNR ...')
             disp('---------------------')
+%             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
+%                                                                     X_square_no_refinement, Y_train, ...
+%                                                                     intrinsic_matrix, display);
             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
                                                                     X_square_no_refinement, Y_train, ...
-                                                                    intrinsic_matrix, display); 
+                                                                    intrinsic_matrix, 0);                                                    
             % NOT square withOUT refinement
             disp('---------------------')
             disp('NSNR ...')
@@ -467,7 +479,9 @@ disp(' Training Total Error (pixel)')
 disp(NSNR_opt_total_cost)
 disp(' Training Error Per Corner (pixel)')
 disp(NSNR_opt_total_cost/sqrt(size(Y_base_line, 2)))
-ans_error_submatrix = [bag_training_indices(1); NSNR_opt_total_cost/sqrt(size(Y_base_line, 2))];
+ans_error_submatrix = [bag_training_indices(1); 
+                       BagData(bag_training_indices(1)).bagfile
+                       NSNR_opt_total_cost/sqrt(size(Y_base_line, 2))];
 
 disp("****************** NSR-training ******************")
 disp('NSR_H_LC: ')
@@ -547,7 +561,8 @@ if validation_flag
         disp('------')
         current_index = bag_validation_indices(i);
         fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
-        ans_error_submatrix = [bag_validation_indices(i)];
+        ans_error_submatrix = [bag_validation_indices(i); 
+                               BagData(bag_validation_indices(i)).bagfile];
         disp("-- Error Per Corner (pixel)")
         disp(' NSNR validation Error Per Corner (pixel)')
         disp(NSNR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
@@ -649,7 +664,7 @@ end
 % load testing images and testing pc mat
 testing_set_pc = loadTestingMatFiles(mat_file_path, test_pc_mat_list);
 for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), bag_file_path + bag_testing_list(i), "not display", "Not clean"); 
+    loadBagImg(testing_fig_handles(i), bag_file_path, bag_testing_list(i), "not display", "Not clean"); 
     prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "not display", "Not-Clean");
 end
 drawnow
@@ -667,8 +682,55 @@ disp("Error matrix")
 disp(ans_error_big_matrix)
 disp("********************************************")
 
+% print out means and normal vectors
+for i = 1 : length(bag_chosen_indices)
+    current_index = bag_chosen_indices(i);
+%     disp('=====================================')
+%     fprintf("-dataset: %s\n", bag_with_tag_list(current_index))
+    centroid_vec = [];
+    nv_vec = [];
+    
+    for j = 1:BagData(current_index).num_tag % which target
+%         fprintf("---------------tag: %i\n", j)
+        lidar_target(j).results(i).name = BagData(current_index).bagfile;
+        lidar_target(j).results(i).mean_centriod = mean([BagData(current_index).lidar_target(j).scan(:).centroid], 2)';
+        lidar_target(j).results(i).mean_NV = mean([BagData(current_index).lidar_target(j).scan(:).normal_vector], 2)';
+        lidar_target(j).results(i).std_mean = std([BagData(current_index).lidar_target(j).scan(:).centroid]');
+        lidar_target(j).results(i).std_NV = std([BagData(current_index).lidar_target(j).scan(:).normal_vector]');
+        centroid_vec = [centroid_vec; lidar_target(j).results(i).mean_centriod];
+        nv_vec = [nv_vec; lidar_target(j).results(i).mean_NV];
+%         disp("----------pose:")
+%         disp("--centroid:")
+%         disp(lidar_target(j).results(i).mean_centriod)
+%         disp("--normal vector:")
+%         disp(lidar_target(j).results(i).mean_NV)
+        
+%         disp("----------std:")
+%         disp("--centroid:")
+%         disp(lidar_target(j).results(i).std_mean)        
+%         disp("--normal vector:")
+%         disp(lidar_target(j).results(i).std_NV)
+    end
+%     disp("-----diff between tags:")
+%     disp("--centroid:")
+    results_diff(i).name = BagData(current_index).bagfile;
+    results_diff(i).diff_centroid = diff(centroid_vec, 1, 1);
+    results_diff(i).distance = sqrt(sum((centroid_vec(:,1)- centroid_vec(:,2)).^2, 1));
+%     disp(results_diff(i).diff_centroid)
+%     disp("--normal vector:")
+    results_diff(i).diff_NV = diff(nv_vec, 1, 1);
+    results_diff(i).diff_NV_deg = rad2deg(acos(nv_vec(1)'*nv_vec(2)));
+%     disp(results_diff(i).diff_NV)
+end
 
-
+disp('======================================================================')
+disp("big target")
+disp(struct2table(lidar_target(1).results(:)))
+disp('======================================================================')
+disp("small target")
+disp(struct2table(lidar_target(2).results(:)))
+disp('======================================================================')
+disp(struct2table(results_diff))
 
 
 
