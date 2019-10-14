@@ -1,11 +1,11 @@
-function opt = optimizeConstraintCustomizedCost(opt, X, target_size)
+function opt = optimizeConstraintCustomizedCost(opt, X, target_size, box_width)
     theta_x = optimvar('theta_x', 1, 1,'LowerBound',-90,'UpperBound',90); % 1x1
     theta_y = optimvar('theta_y', 1, 1,'LowerBound',-90,'UpperBound',90); % 1x1
     theta_z = optimvar('theta_z', 1, 1,'LowerBound',-90,'UpperBound',90); % 1x1
     T = optimvar('T', 1, 3); % 1x3
     prob = optimproblem;
     f = fcn2optimexpr(@computeConstraintCustomizedCost, X, ...
-                       theta_x, theta_y, theta_z, T, target_size);
+                       theta_x, theta_y, theta_z, T, target_size, box_width);
     prob.Objective = f;
     x0.theta_x = 0;
     x0.theta_y = 0;
