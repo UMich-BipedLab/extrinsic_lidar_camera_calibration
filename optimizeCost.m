@@ -1,4 +1,4 @@
-function opt = optimizeCost(opt, X, target_size)
+function opt = optimizeCost(opt, X, target_size, box_width)
 
     R_init = rotx(opt.rpy_init(1)) * roty(opt.rpy_init(2)) * rotz(opt.rpy_init(3));
     opt.H_init(1:3, 1:3) = R_init;
@@ -21,7 +21,7 @@ function opt = optimizeCost(opt, X, target_size)
             opt.metric = "PointToAxis";
             opt.unit = "L1-inspired";
             tic;
-            opt = optimizeConstraintCustomizedCost(opt, X, target_size);
+            opt = optimizeConstraintCustomizedCost(opt, X, target_size, box_width);
             opt.computation_time = toc;
         case 'Coherent Point Drift'
             opt.metric = "--";
