@@ -1,6 +1,6 @@
 function [H_LC, P, cost] = optimize4Points(opt, X, Y, intrinsic, display)
 
-    for i = 1:1000
+    for i = 1:1
         theta_x = optimvar('theta_x', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
         theta_y = optimvar('theta_y', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
         theta_z = optimvar('theta_z', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
@@ -10,6 +10,11 @@ function [H_LC, P, cost] = optimize4Points(opt, X, Y, intrinsic, display)
         prob.Objective = f;
         noise = (rand([1,6]) - 0.5) * 2; % -1 to 1
         if i==1
+            x0.theta_x = opt(1);
+            x0.theta_y = opt(2) ;
+            x0.theta_z = opt(3);
+            x0.T = [0 0 0];
+        elseif i==2
             x0.theta_x = 82.0122;
             x0.theta_y = -0.0192 ;
             x0.theta_z = 87.7953;
