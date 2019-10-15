@@ -30,7 +30,7 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 optimizeAllCorners = 1;
-skip = 1; 
+skip = 0; 
 display = 1; % show numerical results
 validation_flag = 1; % validate results
 base_line_method = 2;
@@ -38,8 +38,8 @@ correspondance_per_pose = 4; % 4 correspondance on a target
 calibration_method = "4 points";
 path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
 path.load_dir = "NewPaper/15-Oct-2019 02:52:45/";
-path.bag_file_path = "bagfiles/";
-path.mat_file_path = "LiDARTag_data/";
+path.bag_file_path = "/home/brucebot/workspace/griztag/src/griz_tag/bagfiles/matlab/";
+path.mat_file_path = "../../LiDARTag_data/";
 
 % save into results into folder         
 path.save_name = "NewPaper";
@@ -99,9 +99,9 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [5];
+trained_ids = [4,10,11];
 skip_indices = [1, 2, 3, 11, 12]; %% skip non-standard 
-skip_indices = [1, 2, 3, 12]; %% skip non-standard 
+skip_indices = [1, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
@@ -115,7 +115,7 @@ opts.num_validation = min(size(bag_with_tag_list, 2) - ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp("Refining corners of camera targets ...")
-BagData = refineImageCorners(path.bag_file_path, BagData, 'not display');
+BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices,'not display');
 
 
 % create figure handles
@@ -282,7 +282,7 @@ if skip == 0
                                                      opts.num_scan, opts.num_lidar_target_pose);
                 % draw camera targets 
                 BagData(current_index).camera_target(j).four_corners_line = ...
-                                            point2DToLineForDrawing(BagData(current_index).camera_target(j).corners, correspondance_per_pose);
+                                            point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
                 showAllLinedLiDARTag(training_pc_fig_handles(training_counter), ...
                                      BagData(current_index).bagfile, ...
                                      BagData(current_index).lidar_target(j), "display");
@@ -336,7 +336,7 @@ if skip == 0
                                                      opts.num_scan, opts.num_lidar_target_pose);
 
                 BagData(current_index).camera_target(j).four_corners_line = ...
-                                            point2DToLineForDrawing(BagData(current_index).camera_target(j).corners, correspondance_per_pose);
+                                            point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
                 showAllLinedLiDARTag(validation_fig_handles(validation_counter), ...
                                      BagData(current_index).bagfile, ...
                                      BagData(current_index).lidar_target(j), "display");
@@ -699,6 +699,8 @@ disp(ans_error_big_matrix)
 disp("********************************************")
 
 % print out means and normal vectors
+lidar_target = [];
+results_diff = [];
 for i = 1 : length(bag_chosen_indices)
     current_index = bag_chosen_indices(i);
 %     disp('=====================================')
@@ -713,6 +715,7 @@ for i = 1 : length(bag_chosen_indices)
         lidar_target(j).results(i).mean_NV = mean([BagData(current_index).lidar_target(j).scan(:).normal_vector], 2)';
         lidar_target(j).results(i).std_mean = std([BagData(current_index).lidar_target(j).scan(:).centroid]');
         lidar_target(j).results(i).std_NV = std([BagData(current_index).lidar_target(j).scan(:).normal_vector]');
+        lidar_target(j).results(i).std_NV_norm_100 = 100*norm(lidar_target(j).results(i).std_NV);
         centroid_vec = [centroid_vec; lidar_target(j).results(i).mean_centriod];
         nv_vec = [nv_vec; lidar_target(j).results(i).mean_NV];
 %         disp("----------pose:")
@@ -747,7 +750,3 @@ disp("small target")
 disp(struct2table(lidar_target(2).results(:)))
 disp('======================================================================')
 disp(struct2table(results_diff))
-
-
-
-         
