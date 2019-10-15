@@ -25,23 +25,24 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% calibration_method: 
 %                     "4 points"
 %                     "IoU"
-%%% load_dir: directory of saved files
+%%% path.load_dir: directory of saved files
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+optimizeAllCorners = 1;
 skip = 1; 
 display = 1; % show numerical results
 validation_flag = 1; % validate results
 base_line_method = 2;
 correspondance_per_pose = 4; % 4 correspondance on a target
 calibration_method = "4 points";
-load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
-load_dir = "NewPaper/15-Oct-2019 02:52:45/";
-bag_file_path = "bagfiles/";
-mat_file_path = "LiDARTag_data/";
+path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
+path.load_dir = "NewPaper/15-Oct-2019 02:52:45/";
+path.bag_file_path = "bagfiles/";
+path.mat_file_path = "LiDARTag_data/";
 
 % save into results into folder         
-save_name = "NewPaper";
+path.save_name = "NewPaper";
 diary Debug % save terminal outputs
 
 
@@ -114,7 +115,7 @@ opts.num_validation = min(size(bag_with_tag_list, 2) - ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp("Refining corners of camera targets ...")
-BagData = refineImageCorners(bag_file_path, BagData, 'not display');
+BagData = refineImageCorners(path.bag_file_path, BagData, 'not display');
 
 
 % create figure handles
@@ -155,8 +156,8 @@ ans_error_big_matrix = [];
 ans_counting_big_matrix = [];
 
 if skip
-    load(load_dir + 'saved_chosen_indices.mat');
-    load(load_dir + 'saved_parameters.mat');
+    load(path.load_dir + 'saved_chosen_indices.mat');
+    load(path.load_dir + 'saved_parameters.mat');
 end
 
 disp("********************************************")
@@ -181,26 +182,26 @@ fprintf("-- number of refinement: %i\n", opts.num_refinement)
 fprintf("-- number of LiDARTag's poses: %i\n", opts.num_lidar_target_pose)
 fprintf("-- number of scan to optimize a LiDARTag pose: %i\n", opts.num_scan)
 c = datestr(datetime); 
-save_dir = save_name + "/" + c + "/";
+path.save_dir = path.save_name + "/" + c + "/";
 
 
 if ~skip
-    mkdir(save_dir);
-    save(save_dir + 'saved_parameters.mat', 'opts', 'validation_flag');
-    save(save_dir + 'saved_chosen_indices.mat', 'skip_indices', 'bag_training_indices', 'bag_validation_indices', 'bag_chosen_indices');
+    mkdir(path.save_dir);
+    save(path.save_dir + 'saved_parameters.mat', 'opts', 'validation_flag');
+    save(path.save_dir + 'saved_chosen_indices.mat', 'skip_indices', 'bag_training_indices', 'bag_validation_indices', 'bag_chosen_indices');
 else
-    load(load_dir + "X_base_line.mat");
-    load(load_dir + "X_train.mat");
-    load(load_dir + "Y.mat")
-    load(load_dir + "save_validation.mat")
-    load(load_dir + "array.mat")
-    load(load_dir + "BagData.mat")
+    load(path.load_dir + "X_base_line.mat");
+    load(path.load_dir + "X_train.mat");
+    load(path.load_dir + "Y.mat")
+    load(path.load_dir + "save_validation.mat")
+    load(path.load_dir + "array.mat")
+    load(path.load_dir + "BagData.mat")
 end
 
 % loading training image
 for k = 1:opts.num_training
     current_index = bag_training_indices(k);
-    loadBagImg(training_img_fig_handles(k), bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
+    loadBagImg(training_img_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
     if skip==1 || skip == 2
         for j = 1:BagData(current_index).num_tag
             for i = 1:size(BagData(current_index).lidar_target(j).scan(:))
@@ -216,7 +217,7 @@ end
 
 for k = 1:opts.num_validation
     current_index = bag_validation_indices(k);
-    loadBagImg(validation_fig_handles(k), bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
+    loadBagImg(validation_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
     if skip==1 || skip == 2
         for j = 1:BagData(current_index).num_tag
             for i = 1:size(BagData(current_index).lidar_target(j).scan(:))
@@ -274,14 +275,14 @@ if skip == 0
                 fprintf("----Tag %i/%i", j, BagData(current_index).num_tag)
                 % optimize lidar targets corners
 %                 [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt.H_TL, ...
-%                                                      mat_file_path, BagData(current_index), ...
+%                                                      path.mat_file_path, BagData(current_index), ...
 %                                                      pc_iter, opts.num_scan);
-                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(j, opt.H_TL, ...
-                                                     mat_file_path, BagData(current_index), ...
+                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt.H_TL, ...
+                                                     path, BagData(current_index), ...
                                                      opts.num_scan, opts.num_lidar_target_pose);
                 % draw camera targets 
                 BagData(current_index).camera_target(j).four_corners_line = ...
-                                            allPoint2DToLineForDrawing(BagData(current_index).camera_target(j).corners, correspondance_per_pose);
+                                            point2DToLineForDrawing(BagData(current_index).camera_target(j).corners, correspondance_per_pose);
                 showAllLinedLiDARTag(training_pc_fig_handles(training_counter), ...
                                      BagData(current_index).bagfile, ...
                                      BagData(current_index).lidar_target(j), "display");
@@ -306,10 +307,10 @@ if skip == 0
             pc_iter = opts.num_scan*(i-1) + 1;
             if base_line_method==1
                 [corners_big, edges] = KaessNewCorners(BagData(current_index).lidar_target(1).tag_size, ...
-                                        mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                                        path.mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
             elseif base_line_method==2
                 [corners_big, edges]= KaessNewConstraintCorners(BagData(current_index).lidar_target(1).tag_size,...
-                                        mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                                        path.mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
             end
             X_base_line = [X_base_line, corners_big];
             Y_base_line = [Y_base_line, BagData(current_index).camera_target(1).corners]; %% use big tag
@@ -327,15 +328,15 @@ if skip == 0
 
             for j = 1:BagData(current_index).num_tag
 %                 [BagData(current_index), ~] = get4CornersReturnHLT(i, j, opt.H_TL, ...
-%                                                      mat_file_path, BagData(current_index), ...
+%                                                      path.mat_file_path, BagData(current_index), ...
 %                                                      opts.num_scan, opts.num_lidar_target_pose);
 
-                [BagData(current_index), ~] = getAll4CornersReturnHLT(j, opt.H_TL, ...
-                                                     mat_file_path, BagData(current_index), ...
+                [BagData(current_index), ~] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt.H_TL, ...
+                                                     path, BagData(current_index), ...
                                                      opts.num_scan, opts.num_lidar_target_pose);
 
                 BagData(current_index).camera_target(j).four_corners_line = ...
-                                            allPoint2DToLineForDrawing(BagData(current_index).camera_target(j).corners, correspondance_per_pose);
+                                            point2DToLineForDrawing(BagData(current_index).camera_target(j).corners, correspondance_per_pose);
                 showAllLinedLiDARTag(validation_fig_handles(validation_counter), ...
                                      BagData(current_index).bagfile, ...
                                      BagData(current_index).lidar_target(j), "display");
@@ -358,12 +359,12 @@ if skip == 0
         end
     end
     drawnow
-    save(save_dir + 'X_base_line.mat', 'X_base_line');
-    save(save_dir + 'X_train.mat', 'X_train', 'H_LT_big', 'X_base_line_edge_points');
-    save(save_dir + 'array.mat', 'train_num_tag_array', 'train_tag_size_array', 'validation_num_tag_array', 'validation_tag_size_array');
-    save(save_dir + 'Y.mat', 'Y_train', 'Y_base_line');
-    save(save_dir + 'BagData.mat', 'BagData');
-    save(save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
+    save(path.save_dir + 'X_base_line.mat', 'X_base_line');
+    save(path.save_dir + 'X_train.mat', 'X_train', 'H_LT_big', 'X_base_line_edge_points');
+    save(path.save_dir + 'array.mat', 'train_num_tag_array', 'train_tag_size_array', 'validation_num_tag_array', 'validation_tag_size_array');
+    save(path.save_dir + 'Y.mat', 'Y_train', 'Y_base_line');
+    save(path.save_dir + 'BagData.mat', 'BagData');
+    save(path.save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
 end
 
 %
@@ -458,27 +459,27 @@ if ~(skip == 2)
             end
     end
     if skip == 0
-        save(save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
-        save(save_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
-        save(save_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
-        save(save_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
-        save(save_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
+        save(path.save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
+        save(path.save_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
+        save(path.save_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
+        save(path.save_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
+        save(path.save_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
     elseif skip == 1
-        save(load_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
-        save(load_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
-        save(load_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
-        save(load_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
-        save(load_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
+        save(path.load_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
+        save(path.load_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
+        save(path.load_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
+        save(path.load_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
+        save(path.load_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
     end
 end
 
 % load saved data
 if skip == 2
-    load(load_dir + "NSNR.mat");
-    load(load_dir + "SNR.mat");
-    load(load_dir + "NSR.mat");
-    load(load_dir + "SR.mat");
-    load(load_dir + "save_validation.mat")
+    load(path.load_dir + "NSNR.mat");
+    load(path.load_dir + "SNR.mat");
+    load(path.load_dir + "NSR.mat");
+    load(path.load_dir + "SR.mat");
+    load(path.load_dir + "save_validation.mat")
 end
 
 disp("****************** NSNR-training ******************")
@@ -627,7 +628,7 @@ end
 
 
 if ~validation_flag
-    save(save_dir + 'validation_cost' , 'SR_validation_cost', 'SNR_validation_cost', 'NSR_validation_cost', 'NSNR_validation_cost');
+    save(path.save_dir + 'validation_cost' , 'SR_validation_cost', 'SNR_validation_cost', 'NSR_validation_cost', 'NSNR_validation_cost');
 end
 
 %%% draw results
@@ -677,9 +678,9 @@ end
 
 % project testing results
 % load testing images and testing pc mat
-testing_set_pc = loadTestingMatFiles(mat_file_path, test_pc_mat_list);
+testing_set_pc = loadTestingMatFiles(path.mat_file_path, test_pc_mat_list);
 for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), bag_file_path, bag_testing_list(i), "not display", "Not clean"); 
+    loadBagImg(testing_fig_handles(i), path.bag_file_path, bag_testing_list(i), "not display", "Not clean"); 
     prjectBackToImage(testing_fig_handles(i), SR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", "not display", "Not-Clean");
 end
 drawnow
