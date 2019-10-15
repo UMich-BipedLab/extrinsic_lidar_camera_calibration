@@ -1,4 +1,4 @@
-function [X_clean, scan] = cleanLiDARTargetWithOneDataSet(X, target_len, opt)
+function [X_clean, clean_up] = cleanLiDARTargetWithOneDataSet(X, target_len, opt)
     N = 4; % clean up using N std for x axis
     M = 3; % clean up using M std for y, z axis
     opt = optimizeCost(opt, X, target_len, 0.001);
@@ -13,9 +13,9 @@ function [X_clean, scan] = cleanLiDARTargetWithOneDataSet(X, target_len, opt)
     Q = find(abs(X_ref_clean_yz(1,:)) < N*(X_std(1))); % clean up x with 2 std
     X_ref_clean = X_ref_clean_yz(:, Q);
     X_clean = inv(opt.H_opt) * X_ref_clean;
-    scan.clean_up.std = N*(X_std(1));
-    scan.clean_up.L_infinity = L_infinity;
-    scan.clean_up.L_1 = sum(X_ref(1:3,:), 1);
+    clean_up.std = N*(X_std(1));
+    clean_up.L_infinity = L_infinity;
+    clean_up.L_1 = sum(X_ref(1:3,:), 1);
 %     figure(200);
 %     clf('reset')
 %     scatter3(X_ref(1,:), X_ref(2,:), X_ref(3,:))
