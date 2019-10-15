@@ -1,4 +1,4 @@
-function BagData = refineImageCorners(path, BagData, display)
+function BagData = refineImageCorners(path, BagData, skip_indices, display)
     if strcmpi("display", display)
         display = 1;
     else
@@ -11,14 +11,18 @@ function BagData = refineImageCorners(path, BagData, display)
     
 
     for k = 1:size(BagData, 2)
-            file = BagData(k).bagfile;
-            bagselect = rosbag(path + file);
-            bagselect2 = select(bagselect,'Time',...
-                [bagselect.StartTime bagselect.StartTime + 1],'Topic','/camera/color/image_raw');
-            allMsgs = readMessages(bagselect2);
-            [img,~] = readImage(allMsgs{1});
-            gray = rgb2gray(img);
-            BW = edge(gray, 'Canny', [0.04]);
+        if any(ismember(k, skip_indices))
+            continue
+        end
+        file = BagData(k).bagfile;
+        bagselect = rosbag(path + file);
+        bagselect2 = select(bagselect,'Time',...
+            [bagselect.StartTime bagselect.StartTime + 1],'Topic','/camera/color/image_raw');
+        allMsgs = readMessages(bagselect2);
+        [img,~] = readImage(allMsgs{1});
+        gray = rgb2gray(img);
+        BW = edge(gray, 'Canny', [0.04]);
+        
         if display
             figure(1000)
             clf('reset')
