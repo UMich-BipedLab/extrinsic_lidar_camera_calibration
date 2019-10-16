@@ -29,12 +29,10 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 optimizeAllCorners = 0;
-skip = 1; 
+skip = 0; 
 debug = 0;
-
 validation_flag = 1; % validate results
 base_line_method = 2;
-
 calibration_method = "4 points";
 path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
 path.load_dir = "NewPaper/16-Oct-2019 13:21:29/";
@@ -85,7 +83,6 @@ opts.num_refinement = 5 ; % 4 rounds of refinement
 opts.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
 opts.num_scan = 5; % how many scans accumulated to optimize one LiDARTag pose (3)
 opts.num_training = 1; %%% how many training set to use (2)
-opts.num_validation = 7; % use how many different datasets to verify the calibration result
 opts.correspondance_per_pose = 4; % 4 correspondance on a target
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,7 +107,7 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [4,10,11];
+trained_ids = [4];
 skip_indices = [1, 2, 3, 11, 12]; %% skip non-standard 
 skip_indices = [1, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();
@@ -118,9 +115,7 @@ bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
 test_pc_mat_list = [TestData(:).pc_file];
 opts.num_training = length(trained_ids); 
-opts.num_validation = min(size(bag_with_tag_list, 2) - ...
-                         length(skip_indices) - opts.num_training, ...
-                         opts.num_validation);
+opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.num_training;
 % opts.num_training = min(length(trained_ids), opts.num_training);     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -335,10 +330,6 @@ if skip == 0
             training_counter = training_counter + 1;
         else
             %%% validation set
-            if validation_counter > opts.num_validation
-                break;
-            end
-
             X_validation_tmp = [];
             Y_validation_tmp = [];
 
@@ -419,7 +410,7 @@ if ~(skip == 2)
                 % square with refinement
                 [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                      X_train, Y_train, ... 
-                                                                     intrinsic_matrix, display); 
+                                                                     intrinsic_matrix, show_pnp_numerical_result); 
                 % NOT square with refinement
                 [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                         X_not_square_refinement, Y_base_line, ...
@@ -433,7 +424,7 @@ if ~(skip == 2)
                     disp('------------------')
                     X_train = regulizedFineTuneLiDARTagPose(train_tag_size_array, ...
                                                             X_train, Y_train, H_LT_big, SR_P, ...
-                                                            opts.correspondance_per_pose, display);
+                                                            opts.correspondance_per_pose, show_pnp_numerical_result);
                     X_not_square_refinement = regulizedFineTuneKaessCorners(X_not_square_refinement, Y_base_line,...
                                                                             X_base_line_edge_points, NSR_P, ...
                                                                             opts.correspondance_per_pose, show_pnp_numerical_result);
@@ -444,7 +435,7 @@ if ~(skip == 2)
             % one shot calibration (*-NR)
             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                     X_square_no_refinement, Y_train, ...
-                                                                    intrinsic_matrix, display); % square withOUT refinement
+                                                                    intrinsic_matrix, show_pnp_numerical_result); % square withOUT refinement
             [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ...
                                                                        intrinsic_matrix, show_pnp_numerical_result); % NOT square withOUT refinement
@@ -719,10 +710,11 @@ disp("==================================================")
 disp("                training error")
 disp("==================================================")
 disp(struct2table(error_struc.training))
-disp("==================================================")
-disp("              validation error")
-disp("==================================================")
+
 if validation_flag
+    disp("==================================================")
+    disp("              validation error")
+    disp("==================================================")
     disp(struct2table(error_struc.validation))
 end
 disp("********************************************")
