@@ -49,7 +49,7 @@ diary Debug % save terminal outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 show_image_refinement = 0;
-show_pnp_numerical_result = 1; % show numerical results
+show_pnp_numerical_result = 0; % show numerical results
 show_lidar_target = 0;
 show_camera_target = 0;
 show_training_results = 1;
@@ -344,7 +344,7 @@ if skip == 0
 
                 BagData(current_index).camera_target(j).four_corners_line = ...
                                             point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
-                showAllLinedLiDARTag(validation_fig_handles(validation_counter), ...
+                showAllLinedLiDARTag(validation_pc_fig_handles(validation_counter), ...
                                      BagData(current_index).bagfile, ...
                                      BagData(current_index).lidar_target(j), show_lidar_target);
                 showLinedAprilTag(validation_fig_handles(validation_counter), ...
@@ -576,13 +576,6 @@ for i = 1:opts.num_training
         disp(SR_training_cost(i).RMSE)
         error_struc.training(i).SR_RMSE = [SR_training_cost(i).RMSE];
 end
-% if length(bag_training_indices)>1
-%     for i = 2:length(bag_training_indices)
-%         index = bag_training_indices(i);
-%         ans_error_submatrix(1) = index;
-%         ans_error_big_matrix = [ans_error_big_matrix, ans_error_submatrix];
-%     end
-% end
 
 %%% verify corner accuracy
 if validation_flag
@@ -591,14 +584,14 @@ if validation_flag
     NSR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, opts, BagData, NSR_P);
     NSNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, opts, BagData, NSNR_P);
 
-    [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
-                                                         opts.num_training, opts, BagData, SNR_P, SR_P);
-    [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
-                                                         opts.num_training, opts, BagData, NSNR_P, NSR_P);
-    [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
-                                                         opts.num_validation, opts, BagData, SNR_P, SR_P);
-    [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
-                                                         opts.num_validation, opts, BagData, NSNR_P, NSR_P);
+%     [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
+%                                                          opts.num_training, opts, BagData, SNR_P, SR_P);
+%     [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
+%                                                          opts.num_training, opts, BagData, NSNR_P, NSR_P);
+%     [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
+%                                                          opts.num_validation, opts, BagData, SNR_P, SR_P);
+%     [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
+%                                                          opts.num_validation, opts, BagData, NSNR_P, NSR_P);
     for i = 1:opts.num_validation
         current_index = bag_validation_indices(i);
         error_struc.validation(i).id = bag_validation_indices(i);   
