@@ -106,4 +106,12 @@ For the method GL_1-R, five sets of estimated LiDAR vertices for each target hav
 ## Citations
 The detail is described in: 
 
-Jiunn-Kai Huang and J. Grizzle, "Improvements to Target-Based 3D LiDAR to Camera Calibration" ([PDF](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/LiDAR2CameraCalibration.pdf))
+Jiunn-Kai Huang and J. Grizzle, "Improvements to Target-Based 3D LiDAR to Camera Calibration" ([PDF](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/LiDAR2CameraCalibration.pdf))([arXiv](https://arxiv.org/abs/1910.03126))
+```
+@article{huang2019improvements,
+  title={Improvements to Target-Based 3D LiDAR to Camera Calibration},
+  author={Huang, Jiunn-Kai and Grizzle, Jessy W},
+  journal={arXiv preprint arXiv:1910.03126},
+  year={2019}
+}
+```
