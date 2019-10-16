@@ -29,7 +29,7 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizeAllCorners = 1;
+optimizeAllCorners = 0;
 skip = 0; 
 display = 1; % show numerical results
 validation_flag = 1; % validate results
@@ -37,7 +37,7 @@ base_line_method = 2;
 correspondance_per_pose = 4; % 4 correspondance on a target
 calibration_method = "4 points";
 path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
-path.load_dir = "NewPaper/15-Oct-2019 02:52:45/";
+path.load_dir = "NewPaper/15-Oct-2019 16:55:31/";
 path.bag_file_path = "/home/brucebot/workspace/griztag/src/griz_tag/bagfiles/matlab/";
 path.mat_file_path = "../../LiDARTag_data/";
 
@@ -570,7 +570,7 @@ if validation_flag
                                                          opts.num_validation, opts, BagData, NSNR_P, NSR_P);
 end
 
-
+%%
 if validation_flag
     disp("***************** validation Error*****************")
     for i = 1:opts.num_validation
@@ -579,19 +579,20 @@ if validation_flag
         fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
         ans_error_submatrix = [bag_validation_indices(i); 
                                BagData(bag_validation_indices(i)).bagfile];
+        current_num_scan = BagData(bag_validation_indices(i)).num_tag * correspondance_per_pose * opts.num_scan;
         disp("-- Error Per Corner (pixel)")
         disp(' NSNR validation Error Per Corner (pixel)')
-        disp(NSNR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
-        ans_error_submatrix = [ans_error_submatrix; NSNR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
+        disp(NSNR_validation_cost(i).total_cost/ sqrt(current_num_scan))
+        ans_error_submatrix = [ans_error_submatrix; NSNR_validation_cost(i).total_cost/sqrt(current_num_scan)];
         disp(' NSR validation Error Per Corner (pixel)')
-        disp(NSR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
-        ans_error_submatrix = [ans_error_submatrix; NSR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
+        disp(NSR_validation_cost(i).total_cost/ sqrt(current_num_scan))
+        ans_error_submatrix = [ans_error_submatrix; NSR_validation_cost(i).total_cost/sqrt(current_num_scan)];
         disp(' SNR validation Error Per Corner (pixel)')
-        disp(SNR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
-        ans_error_submatrix = [ans_error_submatrix; SNR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
+        disp(SNR_validation_cost(i).total_cost/ sqrt(current_num_scan))
+        ans_error_submatrix = [ans_error_submatrix; SNR_validation_cost(i).total_cost/sqrt(current_num_scan)];
         disp(' SR validation Error Per Corner (pixel)')
-        disp(SR_validation_cost(i).total_cost/ sqrt(size(Y_validation, 2)/opts.num_validation))
-        ans_error_submatrix = [ans_error_submatrix; SR_validation_cost(i).total_cost/sqrt(size(Y_validation, 2)/opts.num_validation)];
+        disp(SR_validation_cost(i).total_cost/ sqrt(current_num_scan))
+        ans_error_submatrix = [ans_error_submatrix; SR_validation_cost(i).total_cost/sqrt(current_num_scan)];
         ans_error_big_matrix = [ans_error_big_matrix, ans_error_submatrix];
     end
     
