@@ -66,7 +66,7 @@ function [bag_data, H_LT] = getAll4CornersReturnHLT(optimizeAllCorners, tag_num,
         end
         save(path.save_dir + extractBetween(bag_data.bagfile,"",".bag") + '_all_scan_corners.mat');
     else
-        load(path.load_dir + extractBetween(bag_data.bagfile,"",".bag") + "_all_scan_corners.mat");
+        load(path.load_all_vertices + extractBetween(bag_data.bagfile,"",".bag") + "_all_scan_corners.mat");
     end
     
     [~, chosen_scan] = min([similarity_table(:).mins]);
