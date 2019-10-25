@@ -12,6 +12,8 @@ function cost = verifyCornerAccuracyWRTDataset(indices, opt, bag_data, P)
             end
         end
         cost(i).name = bag_data(current_index).bagfile;
+        cost(i).total_cost = sum(sum(cost_array, 2), 1);
+        cost(i).num_pose = current_num_poses;
         cost(i).RMSE = sqrt(sum(sum(cost_array, 2), 1)/current_num_poses); % total cost of this dataset
 %         cost(i).std = std(cost_array'); % std of cost of each scan
     end
