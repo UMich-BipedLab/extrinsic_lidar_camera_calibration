@@ -10,6 +10,7 @@ function showLinedLiDARTag(image_hadle, bagfile, LiDARTag, display)
     
     if checkDisplay(display)
         set(get(image_hadle,'parent'),'visible','on');% show the current axes
+        view(-49,19)
         axis 'equal'
     end
 end
