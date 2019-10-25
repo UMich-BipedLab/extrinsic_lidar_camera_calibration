@@ -651,36 +651,38 @@ disp('-- RPY (XYZ):')
 disp(rad2deg(rotm2eul(SR_H_LC(1:3, 1:3), "XYZ")))
 disp('-- T:')
 disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
-% disp("---- Error table")
-% disp("==================================================")
-% disp("               training results")
-% disp("==================================================")
-% disp(struct2table(calibration(index).error_struc.training_results))
-% disp("==================================================")
-% disp("                training error")
-% disp("==================================================")
-% disp(struct2table(calibration(index).error_struc.training))
-% 
-% if validation_flag
-%     disp("==================================================")
-%     disp("              validation error")
-%     disp("==================================================")
-%     disp(struct2table(calibration(index).error_struc.validation))
-% end
 disp("********************************************")
-
 end
 
 %%
-analysis(12).H_SR(12).diff_H = struct();
-for index=1:12
+clc
+
+analysis(total_num_dataset).H_SR(total_num_dataset).diff_H = struct();
+for index=1:total_num_dataset
     if  ismember(index, skip_indices)
         continue
+    end
+    disp("***************************************************************************************")
+    disp("***************************************************************************************")
+    disp("==================")
+    disp(" training results")
+    disp("==================")
+    disp(struct2table(calibration(index).error_struc.training_results))
+    disp("==================")
+    disp(" training error")
+    disp("==================")
+    disp(struct2table(calibration(index).error_struc.training))
+
+    if validation_flag
+        disp("==================")
+        disp(" validation error")
+        disp("==================")
+        disp(struct2table(calibration(index).error_struc.validation))
     end
     
     % H_SR
     H_current = calibration(index).H_SR;
-    for j=1:12
+    for j=1:total_num_dataset
         if  ismember(j, skip_indices) || index==j
             continue
         end
@@ -691,7 +693,7 @@ for index=1:12
     analysis(index).H_SR_sum = sum([analysis(index).H_SR(:).diff_H]);
     % H_SNR
     H_current = calibration(index).H_SNR;
-    for j=1:12
+    for j=1:total_num_dataset
         if  ismember(j, skip_indices)
             continue
         end
@@ -703,7 +705,7 @@ for index=1:12
     
     % H_NSR
     H_current = calibration(index).H_NSR;
-    for j=1:12
+    for j=1:total_num_dataset
         if  ismember(j, skip_indices)
             continue
         end
@@ -715,7 +717,7 @@ for index=1:12
     
     % H_NSNR
     H_current = calibration(index).H_NSNR;
-    for j=1:12
+    for j=1:total_num_dataset
         if  ismember(j, skip_indices)
             continue
         end
