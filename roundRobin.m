@@ -116,28 +116,53 @@ opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.nu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-calibration(12) = struct();
-calibration(12).H.SR = [];
-calibration(12).H.SNR = [];
-calibration(12).H.NSR = [];
-calibration(12).H.NSNR = [];
+total_num_dataset = length([BagData(:).bagfile]);
+calibration(total_num_dataset) = struct();
+calibration(total_num_dataset).H_SR = [];
+calibration(total_num_dataset).H_SNR = [];
+calibration(total_num_dataset).H_NSR = [];
+calibration(total_num_dataset).H_NSNR = [];
 
-calibration(12).P.SR = [];
-calibration(12).P.SNR = [];
-calibration(12).P.NSR = [];
-calibration(12).P.NSNR = [];
+calibration(total_num_dataset).P_SR = [];
+calibration(total_num_dataset).P_SNR = [];
+calibration(total_num_dataset).P_NSR = [];
+calibration(total_num_dataset).P_NSNR = [];
 
-calibration(12).RMSE.SR = [];
-calibration(12).RMSE.SNR = [];
-calibration(12).RMSE.NSR = [];
-calibration(12).RMSE.NSNR = [];
+calibration(total_num_dataset).RMSE_SR = [];
+calibration(total_num_dataset).RMSE_SNR = [];
+calibration(total_num_dataset).RMSE_NSR = [];
+calibration(total_num_dataset).RMSE_NSNR = [];
 
-calibration(12).All.SR = [];
-calibration(12).All.SNR = [];
-calibration(12).All.NSR = [];
-calibration(12).All.NSNR = [];
+calibration(total_num_dataset).All = [];
+calibration(total_num_dataset).All.SR = [];
+calibration(total_num_dataset).All.SNR = [];
+calibration(total_num_dataset).All.NSR = [];
+calibration(total_num_dataset).All.NSNR = [];
 
-parfor index = 1:length([BagData(:).bagfile])
+calibration(total_num_dataset).error_struc = [];
+calibration(total_num_dataset).error_struc.training_results.id = []';
+calibration(total_num_dataset).error_struc.training_results.name = [];
+calibration(total_num_dataset).error_struc.training_results.NSNR_RMSE = [];
+calibration(total_num_dataset).error_struc.training_results.NSR_RMSE = [];
+calibration(total_num_dataset).error_struc.training_results.SNR_RMSE = [];
+calibration(total_num_dataset).error_struc.training_results.SR_RMSE = [];
+
+
+calibration(total_num_dataset).error_struc.training(opts.num_training).id = [];   
+calibration(total_num_dataset).error_struc.training(opts.num_training).name = [];
+calibration(total_num_dataset).error_struc.training(opts.num_training).NSNR_RMSE = [];
+calibration(total_num_dataset).error_struc.training(opts.num_training).NSR_RMSE = [];
+calibration(total_num_dataset).error_struc.training(opts.num_training).SNR_RMSE = [];
+calibration(total_num_dataset).error_struc.training(opts.num_training).SR_RMSE = [];
+
+calibration(total_num_dataset).error_struc.validation(opts.num_validation).id = [];   
+calibration(total_num_dataset).error_struc.validation(opts.num_validation).name = [];
+calibration(total_num_dataset).error_struc.validation(opts.num_validation).NSNR_RMSE = [];
+calibration(total_num_dataset).error_struc.validation(opts.num_validation).NSR_RMSE = [];
+calibration(total_num_dataset).error_struc.validation(opts.num_validation).SNR_RMSE = [];
+calibration(total_num_dataset).error_struc.validation(opts.num_validation).SR_RMSE = [];
+
+parfor index = 1:total_num_dataset
 disp("Refining corners of camera targets ...")
 [BagData, TestData] = getBagData();
 BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement);
@@ -552,8 +577,8 @@ for i = 1:opts.num_training
         disp(SR_training_cost(i).RMSE)
         calibration(index).error_struc.training(i).SR_RMSE = [SR_training_cost(i).RMSE];
 end
-
-%%% verify corner accuracy
+% 
+% %%% verify corner accuracy
 if validation_flag
     SR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, opts, BagData, SR_P);
     SNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, opts, BagData, SNR_P);
@@ -670,22 +695,22 @@ disp('-- RPY (XYZ):')
 disp(rad2deg(rotm2eul(SR_H_LC(1:3, 1:3), "XYZ")))
 disp('-- T:')
 disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
-disp("---- Error table")
-disp("==================================================")
-disp("               training results")
-disp("==================================================")
-disp(struct2table(calibration(index).error_struc.training_results))
-disp("==================================================")
-disp("                training error")
-disp("==================================================")
-disp(struct2table(calibration(index).error_struc.training))
-
-if validation_flag
-    disp("==================================================")
-    disp("              validation error")
-    disp("==================================================")
-    disp(struct2table(calibration(index).error_struc.validation))
-end
+% disp("---- Error table")
+% disp("==================================================")
+% disp("               training results")
+% disp("==================================================")
+% disp(struct2table(calibration(index).error_struc.training_results))
+% disp("==================================================")
+% disp("                training error")
+% disp("==================================================")
+% disp(struct2table(calibration(index).error_struc.training))
+% 
+% if validation_flag
+%     disp("==================================================")
+%     disp("              validation error")
+%     disp("==================================================")
+%     disp(struct2table(calibration(index).error_struc.validation))
+% end
 disp("********************************************")
 
 end
