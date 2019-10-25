@@ -15,8 +15,8 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %           and then calibrate 
 %        1: skip optimize lidar target's corners
 %        2: just shown calibration results
-%%% display (0/1): To show numerical results
-%%% validation_flag (0/1): validate the calibration result
+%%% debug (0/1): print more stuff at the end to help debugging
+%%% validation_flag (0/1): validate the calibration result if one has
 %%% base_line_method (1/2): 
 %                   1: ransac edges seperately and the intersect edges to
 %                      estimate corners
@@ -25,18 +25,19 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %                     "4 points"
 %                     "IoU"
 %%% path.load_dir: directory of saved files
+%%% load_all_vertices: pre-calculated vertices (pick the top-5 consistent)
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 optimizeAllCorners = 0;
-skip = 0; 
+skip = 1; 
 debug = 0;
-validation_flag = 1; % validate results
+validation_flag = 1;
 base_line_method = 2;
 calibration_method = "4 points";
 path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
-path.load_dir = "NewPaper/16-Oct-2019 13:21:29/";
-path.load_all_vertices = "NewPaper/15-Oct-2019 16:42:36/";
+path.load_dir = "NewPaper/21-Oct-2019 19:40:36/";
+path.load_all_vertices = "NewPaper/15-Oct-2019 16_42_36/";
 path.bag_file_path = "/home/brucebot/workspace/griztag/src/griz_tag/bagfiles/matlab/";
 path.mat_file_path = "../../LiDARTag_data/";
 
@@ -47,18 +48,31 @@ diary Debug % save terminal outputs
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% show figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 show_image_refinement = 0;
 show_pnp_numerical_result = 0; % show numerical results
-show_lidar_target = 0;
+show_lidar_target = 1;
+% show.lidar_target_optimization = 1;
 show_camera_target = 0;
-show_training_results = 1;
-show_validation_results = 1;
-show_testing_results = 1;
+show_training_results = 0; % 1
+show_validation_results = 0; %1 
+show_testing_results = 0; %1
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% parameters for optimization of lidar targets
-%%% We have tried several methods to recover the uobserable lidar target's 
+% num_refinement: how many rounds of refinement
+% num_lidar_target_pose: how many lidar target poses to optimize H_LC 
+% num_scan: accumulate how many scans to optimize a lidar target's corners
+% correspondance_per_pose (int): how many correspondance on a target
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+opts.num_refinement = 5 ; % 4 rounds of refinement
+opts.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
+opts.num_scan = 5; % how many scans accumulated to optimize one LiDARTag pose (3)
+opts.correspondance_per_pose = 4; % 4 correspondance on a target
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% We have tried several methods to recover the unobserable lidar target's 
 %%% corners, those will be added soon
 % method:
 %        Constraint Customize: Using proposed method stated in the paper
@@ -72,20 +86,6 @@ show_testing_results = 1;
 %        GICP-SE3-costimized: coming soon
 %        Two Hollow Strips: coming soon
 %        Project: coming soon
-% num_refinement: how many rounds of refinement
-% num_lidar_target_pose: how many lidar target poses to optimize H_LC 
-% num_scan: accumulate how many scans to optimize a lidar target's corners
-% num_training: how many training sets to optimize H_LC
-% num_validation: how many validation set to verify the optimized H_LC
-% correspondance_per_pose (int): how many correspondance on a target
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-opts.num_refinement = 5 ; % 4 rounds of refinement
-opts.num_lidar_target_pose = 5; % how many LiDARTag poses to optimize H_LC (5) (2)
-opts.num_scan = 5; % how many scans accumulated to optimize one LiDARTag pose (3)
-opts.num_training = 1; %%% how many training set to use (2)
-opts.correspondance_per_pose = 4; % 4 correspondance on a target
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% optimization parameters
 %   H_TL: optimization for LiDAR target to ideal frame to get corners
 %   H_LC: optimization for LiDAR to camera transformation
@@ -107,22 +107,18 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [4];
-skip_indices = [1, 2, 3, 11, 12]; %% skip non-standard 
+trained_ids = [3]; % 3,10,11
 skip_indices = [1, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
 test_pc_mat_list = [TestData(:).pc_file];
 opts.num_training = length(trained_ids); 
-opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.num_training;
-% opts.num_training = min(length(trained_ids), opts.num_training);     
-
+opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.num_training;    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp("Refining corners of camera targets ...")
 BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement);
-
 
 % create figure handles
 training_img_fig_handles = createFigHandle(opts.num_training, "training_img");
@@ -130,6 +126,8 @@ training_pc_fig_handles = createFigHandle(opts.num_training, "training_pc");
 validation_fig_handles = createFigHandle(opts.num_validation, "validation_img");
 validation_pc_fig_handles = createFigHandle(opts.num_validation, "validation_pc");
 testing_fig_handles = createFigHandle(size(bag_testing_list, 2), "testing");
+
+
 
 if random_select
     % get training indices
@@ -288,9 +286,9 @@ if skip == 0
 %                 [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt.H_TL, ...
 %                                                      path.mat_file_path, BagData(current_index), ...
 %                                                      pc_iter, opts.num_scan);
-                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt.H_TL, ...
+                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt, ...
                                                      path, BagData(current_index), ...
-                                                     opts.num_scan, opts.num_lidar_target_pose);
+                                                     opts);
                 % draw camera targets 
                 BagData(current_index).camera_target(j).four_corners_line = ...
                                             point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
@@ -312,22 +310,25 @@ if skip == 0
 
             % 3 x M*i, M is correspondance per image, i is image
             Y_train = [Y_train, Y_training_tmp]; 
-            fprintf(" Got training set: %s\n", bag_with_tag_list(current_index))
-
-            % base line
-            pc_iter = opts.num_scan*(i-1) + 1;
-            if base_line_method==1
-                [corners_big, edges] = KaessNewCorners(BagData(current_index).lidar_target(1).tag_size, ...
-                                        path.mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
-            elseif base_line_method==2
-                [corners_big, edges]= KaessNewConstraintCorners(BagData(current_index).lidar_target(1).tag_size,...
-                                        path.mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
-            end
-            X_base_line = [X_base_line, corners_big];
-            Y_base_line = [Y_base_line, BagData(current_index).camera_target(1).corners]; %% use big tag
-            X_base_line_edge_points = [X_base_line_edge_points, edges];
             H_LT_big = [H_LT_big, H_LT_tmp];
+            fprintf(" Got training set: %s\n", bag_with_tag_list(current_index))
             training_counter = training_counter + 1;
+            
+            % base line
+            for i = 1:opts.num_lidar_target_pose
+                pc_iter = opts.num_scan*(i-1) + 1;
+                if base_line_method==1
+                    [corners_big, edges] = KaessNewCorners(BagData(current_index).lidar_target(1).tag_size, ...
+                                            path.mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                elseif base_line_method==2
+                    [corners_big, edges]= KaessNewConstraintCorners(BagData(current_index).lidar_target(1).tag_size,...
+                                            path.mat_file_path, BagData(current_index).lidar_target(1).pc_file, pc_iter);
+                end
+                X_base_line = [X_base_line, corners_big];
+                Y_base_line = [Y_base_line, BagData(current_index).camera_target(1).corners]; %% use big tag
+                X_base_line_edge_points = [X_base_line_edge_points, edges];
+            end
+            
         else
             %%% validation set
             X_validation_tmp = [];
@@ -338,10 +339,8 @@ if skip == 0
 %                                                      path.mat_file_path, BagData(current_index), ...
 %                                                      opts.num_scan, opts.num_lidar_target_pose);
 
-                [BagData(current_index), ~] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt.H_TL, ...
-                                                     path, BagData(current_index), ...
-                                                     opts.num_scan, opts.num_lidar_target_pose);
-
+                [BagData(current_index), ~] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt, ...
+                                                     path, BagData(current_index), opts);
                 BagData(current_index).camera_target(j).four_corners_line = ...
                                             point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
                 showAllLinedLiDARTag(validation_pc_fig_handles(validation_counter), ...
@@ -374,7 +373,7 @@ if skip == 0
     save(path.save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
 end
 
-%
+%%
 if ~(skip == 2)
     X_square_no_refinement = X_train;
     X_not_square_refinement = X_base_line;
@@ -391,14 +390,14 @@ if ~(skip == 2)
 %             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
 %                                                                     X_square_no_refinement, Y_train, ...
 %                                                                     intrinsic_matrix, display);
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost, SNR_final, SNR_All] = optimize4Points(opt.H_LC.rpy_init,...
                                                                     X_square_no_refinement, Y_train, ...
                                                                     intrinsic_matrix, show_pnp_numerical_result);                                                    
             % NOT square withOUT refinement
             disp('---------------------')
             disp('NSNR ...')
             disp('---------------------')
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, NSNR_final, NSNR_All] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ... 
                                                                        intrinsic_matrix, show_pnp_numerical_result); 
 
@@ -408,11 +407,11 @@ if ~(skip == 2)
                 disp('---------------------')
 
                 % square with refinement
-                [SR_H_LC, SR_P, SR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
+                [SR_H_LC, SR_P, SR_opt_total_cost, SR_final, SR_All] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                      X_train, Y_train, ... 
                                                                      intrinsic_matrix, show_pnp_numerical_result); 
                 % NOT square with refinement
-                [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
+                [NSR_H_LC, NSR_P, NSR_opt_total_cost, NSR_final, NNR_All] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                         X_not_square_refinement, Y_base_line, ...
                                                                         intrinsic_matrix, show_pnp_numerical_result); 
                 
@@ -433,10 +432,10 @@ if ~(skip == 2)
 
         case "IoU"
             % one shot calibration (*-NR)
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost, ~, ~] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                     X_square_no_refinement, Y_train, ...
                                                                     intrinsic_matrix, show_pnp_numerical_result); % square withOUT refinement
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, ...
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, ~, ~] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ...
                                                                        intrinsic_matrix, show_pnp_numerical_result); % NOT square withOUT refinement
 
@@ -499,12 +498,12 @@ disp(' T:')
 disp(-inv(NSNR_H_LC(1:3, 1:3))*NSNR_H_LC(1:3, 4))
 disp("========= Error =========")
 disp(' Training Total Error (pixel)')
-disp(NSNR_opt_total_cost)
+disp(sqrt(NSNR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
-disp(NSNR_opt_total_cost/sqrt(size(Y_base_line, 2)))
+disp(sqrt(NSNR_opt_total_cost/size(Y_base_line, 2)))
 error_struc.training_results.id = [bag_training_indices(:)]';
 error_struc.training_results.name = [BagData(bag_training_indices(:)).bagfile];
-error_struc.training_results.NSNR_RMSE = [NSNR_opt_total_cost/sqrt(size(Y_base_line, 2))];
+error_struc.training_results.NSNR_RMSE = [sqrt(NSNR_opt_total_cost/size(Y_base_line, 2))];
 
 disp("****************** NSR-training ******************")
 disp('NSR_H_LC: ')
@@ -516,10 +515,10 @@ disp(' T:')
 disp(-inv(NSR_H_LC(1:3, 1:3))*NSR_H_LC(1:3, 4))
 disp("========= Error =========")
 disp(' Training Total Error (pixel)')
-disp(NSR_opt_total_cost)
+disp(sqrt(NSR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
-disp(NSR_opt_total_cost/sqrt(size(Y_base_line, 2))) 
-error_struc.training_results.NSR_RMSE = [NSR_opt_total_cost/sqrt(size(Y_base_line, 2))];
+disp(sqrt(NSR_opt_total_cost/size(Y_base_line, 2))) 
+error_struc.training_results.NSR_RMSE = [sqrt(NSR_opt_total_cost/size(Y_base_line, 2))];
 
 disp("****************** SNR-training ******************")
 disp('SNR_H_LC: ')
@@ -531,10 +530,10 @@ disp(' T:')
 disp(-inv(SNR_H_LC(1:3, 1:3))*SNR_H_LC(1:3, 4))
 disp("========= Error =========")
 disp(' Training Total Error (pixel)')
-disp(SNR_opt_total_cost)
+disp(sqrt(SNR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
-disp(SNR_opt_total_cost/sqrt(size(Y_train, 2)))
-error_struc.training_results.SNR_RMSE = [SNR_opt_total_cost/sqrt(size(Y_train, 2))];
+disp(sqrt(SNR_opt_total_cost/size(Y_train, 2)))
+error_struc.training_results.SNR_RMSE = [sqrt(SNR_opt_total_cost/size(Y_train, 2))];
 
 disp("****************** SR-training ******************")
 disp('H_LC: ')
@@ -546,10 +545,10 @@ disp(' T:')
 disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
 disp("========= Error =========")
 disp(' Training Total Error (pixel)')
-disp(SR_opt_total_cost)
+disp(sqrt(SR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
-disp(SR_opt_total_cost/sqrt(size(Y_train, 2)))
-error_struc.training_results.SR_RMSE = [SR_opt_total_cost/sqrt(size(Y_train, 2))];
+disp(sqrt(SR_opt_total_cost/size(Y_train, 2)))
+error_struc.training_results.SR_RMSE = [sqrt(SR_opt_total_cost/size(Y_train, 2))];
 
 
 SR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, SR_P);
