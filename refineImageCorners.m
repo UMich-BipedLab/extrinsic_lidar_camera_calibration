@@ -1,15 +1,8 @@
 function BagData = refineImageCorners(path, BagData, skip_indices, display)
-    if strcmpi("display", display)
-        display = 1;
-    else
-        display = 0;
-    end
-    
     extend_fac = 2;
     corner_array = [1 1 2 3
                     2 3 4 4];
     
-
     for k = 1:size(BagData, 2)
         if any(ismember(k, skip_indices))
             continue
@@ -23,7 +16,7 @@ function BagData = refineImageCorners(path, BagData, skip_indices, display)
         gray = rgb2gray(img);
         BW = edge(gray, 'Canny', [0.04]);
         
-        if display
+        if checkDisplay(display)
             figure(1000)
             clf('reset')
             hold on
@@ -37,7 +30,7 @@ function BagData = refineImageCorners(path, BagData, skip_indices, display)
             title(file)
         end
         for j = 1:BagData(k).num_tag
-            if display
+            if checkDisplay(display)
 %                 disp("Before modification")
 %                 disp([BagData(k).camera_target(j).corners])
             end
@@ -75,7 +68,7 @@ function BagData = refineImageCorners(path, BagData, skip_indices, display)
                 end
                 [x, y, line_model, inlier_pts] = ransacLineWithInlier(data', 0.1);
                 
-                if display
+                if checkDisplay(display)
                     figure(2000)
                     hold on
                     scatter(BagData(k).camera_target(j).corners(1,:), BagData(k).camera_target(j).corners(2,:))
@@ -111,7 +104,7 @@ function BagData = refineImageCorners(path, BagData, skip_indices, display)
             cross_big_2d = [cross_big_2d; ones(1, 4)];
             BagData(k).camera_target(j).corners = cross_big_2d;
             
-            if display
+            if checkDisplay(display)
 %                 disp("Afrer modification")
 %                 disp([BagData(k).camera_target(j).corners])
                 figure(2000)
@@ -124,10 +117,10 @@ function BagData = refineImageCorners(path, BagData, skip_indices, display)
                 drawnow
             end
         end
-        if display
-            disp("press any key to continue")
-            pause;
-            clc
+        if checkDisplay(display)
+%             disp("press any key to continue")
+%             pause;
+%             clc
         end
     end
 end

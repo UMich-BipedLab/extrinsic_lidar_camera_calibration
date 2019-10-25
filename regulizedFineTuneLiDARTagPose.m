@@ -28,7 +28,7 @@ function X = regulizedFineTuneLiDARTagPose(tag_size_array, X, Y, H_LT, P, corres
         H_fine_tune(1:3, 1:3) = R_final;
         H_fine_tune(1:3, 4) = sol.T';
         
-        if display
+        if checkDisplay(display)
             disp('new H_LT: ')
             disp(H_fine_tune)
             disp('cost:')
