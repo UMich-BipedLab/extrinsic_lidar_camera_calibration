@@ -20,6 +20,17 @@ function calibration = parforInit(total_num_dataset, opts)
     calibration(total_num_dataset).All.SNR = [];
     calibration(total_num_dataset).All.NSR = [];
     calibration(total_num_dataset).All.NSNR = [];
+    
+    calibration(total_num_dataset).count.training.SNR = [];
+    calibration(total_num_dataset).count.training.SR = [];
+    calibration(total_num_dataset).count.training.NSR = [];
+    calibration(total_num_dataset).count.training.NSNR = [];
+
+    calibration(total_num_dataset).count.validation.SNR = [];
+    calibration(total_num_dataset).count.validation.SR = [];
+    calibration(total_num_dataset).count.validation.NSR = [];
+    calibration(total_num_dataset).count.validation.NSNR = [];
+
 
     calibration(total_num_dataset).error_struc = [];
     calibration(total_num_dataset).error_struc.training_results.id = []';
