@@ -46,8 +46,8 @@ calibration_method = "4 points";
 % path.bag_file_path = "/home/brucebot/workspace/griztag/src/griz_tag/bagfiles/matlab/";
 % path.mat_file_path = "../../LiDARTag_data/";
 
-path.load_dir = "09-Oct-2019 23:12:52/";
-path.load_all_vertices = "16-Nov-2019 14:53:58/";
+path.load_dir = "saved_data/";
+path.load_all_vertices = "ALL_LiDAR_vertices/";
 path.bag_file_path = "bagfiles/";
 path.mat_file_path = "LiDARTag_data/";
 
