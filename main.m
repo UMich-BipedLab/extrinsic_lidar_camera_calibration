@@ -10,6 +10,9 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% parameters of user setting
+%%% optimizeAllCorners (0/1): optimize all lidar targets vertices for
+%                             different datasets
+%   NOTE: this usually only needs to be done ONCE.
 %%% skip (0/1/2):
 %        0: optimize lidar target's corners 
 %           and then calibrate 
@@ -29,15 +32,16 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizeAllCorners = 0;
-skip = 1; 
+opts.optimizeAllCorners = 0;
+opts.use_top_consistent_vertices = 1;
+skip = 0; 
 debug = 0;
 validation_flag = 1;
 base_line_method = 2;
 calibration_method = "4 points";
 path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
-path.load_dir = "NewPaper/21-Oct-2019 19:40:36/";
-path.load_all_vertices = "NewPaper/15-Oct-2019 16_42_36/";
+path.load_dir = "NewPaper/15-Nov-2019 19:00:42/";
+path.load_all_vertices = "NewPaper/16-Nov-2019 14:53:58/";
 path.bag_file_path = "/home/brucebot/workspace/griztag/src/griz_tag/bagfiles/matlab/";
 path.mat_file_path = "../../LiDARTag_data/";
 
@@ -45,14 +49,12 @@ path.mat_file_path = "../../LiDARTag_data/";
 path.save_name = "NewPaper";
 diary Debug % save terminal outputs
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% show figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 show_image_refinement = 0;
 show_pnp_numerical_result = 0; % show numerical results
-show_lidar_target = 1;
+show_lidar_target = 0;
 % show.lidar_target_optimization = 1;
 show_camera_target = 0;
 show_training_results = 0; % 1
@@ -107,8 +109,8 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [3]; % 3,10,11
-skip_indices = [1, 12]; %% skip non-standard 
+trained_ids = [4, 7, 10]; % 3,10,11
+skip_indices = [1, 2, 3 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
@@ -283,10 +285,7 @@ if skip == 0
             for j = 1:BagData(current_index).num_tag
                 fprintf("----Tag %i/%i", j, BagData(current_index).num_tag)
                 % optimize lidar targets corners
-%                 [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt.H_TL, ...
-%                                                      path.mat_file_path, BagData(current_index), ...
-%                                                      pc_iter, opts.num_scan);
-                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt, ...
+                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(j, opt, ...
                                                      path, BagData(current_index), ...
                                                      opts);
                 % draw camera targets 
@@ -335,11 +334,7 @@ if skip == 0
             Y_validation_tmp = [];
 
             for j = 1:BagData(current_index).num_tag
-%                 [BagData(current_index), ~] = get4CornersReturnHLT(i, j, opt.H_TL, ...
-%                                                      path.mat_file_path, BagData(current_index), ...
-%                                                      opts.num_scan, opts.num_lidar_target_pose);
-
-                [BagData(current_index), ~] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt, ...
+                [BagData(current_index), ~] = getAll4CornersReturnHLT(j, opt, ...
                                                      path, BagData(current_index), opts);
                 BagData(current_index).camera_target(j).four_corners_line = ...
                                             point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
@@ -392,7 +387,12 @@ if ~(skip == 2)
 %                                                                     intrinsic_matrix, display);
             [SNR_H_LC, SNR_P, SNR_opt_total_cost, SNR_final, SNR_All] = optimize4Points(opt.H_LC.rpy_init,...
                                                                     X_square_no_refinement, Y_train, ...
-                                                                    intrinsic_matrix, show_pnp_numerical_result);                                                    
+                                                                   intrinsic_matrix, show_pnp_numerical_result);                                                    
+            calibration(1).H_SNR = SNR_H_LC;
+            calibration(1).P_SNR = SNR_P;
+            calibration(1).RMSE.SNR = SNR_opt_total_cost;
+            calibration(1).All.SNR = SNR_All; 
+            
             % NOT square withOUT refinement
             disp('---------------------')
             disp('NSNR ...')
@@ -400,7 +400,11 @@ if ~(skip == 2)
             [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, NSNR_final, NSNR_All] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ... 
                                                                        intrinsic_matrix, show_pnp_numerical_result); 
-
+            calibration(1).H_NSNR = NSNR_H_LC;
+            calibration(1).P_NSNR = NSNR_P;
+            calibration(1).RMSE_NSNR = NSNR_opt_total_cost;
+            calibration(1).All.NSNR = NSNR_All;
+            
             for i = 0: opts.num_refinement-1
                 disp('---------------------')
                 disp(' Optimizing H_LC ...')
@@ -410,10 +414,19 @@ if ~(skip == 2)
                 [SR_H_LC, SR_P, SR_opt_total_cost, SR_final, SR_All] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                      X_train, Y_train, ... 
                                                                      intrinsic_matrix, show_pnp_numerical_result); 
+                calibration(1).H_SR = SR_H_LC;
+                calibration(1).P_SR = SR_P;
+                calibration(1).RMSE_SR = SR_opt_total_cost;
+                calibration(1).All.SR = SR_All;
+                 
                 % NOT square with refinement
-                [NSR_H_LC, NSR_P, NSR_opt_total_cost, NSR_final, NNR_All] = optimize4Points(opt.H_LC.rpy_init, ...
+                [NSR_H_LC, NSR_P, NSR_opt_total_cost, NSR_final, NSR_All] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                         X_not_square_refinement, Y_base_line, ...
                                                                         intrinsic_matrix, show_pnp_numerical_result); 
+                calibration(1).H_NSR = NSR_H_LC;
+                calibration(1).P_NSR = NSR_P;
+                calibration(1).RMSE_NSR = NSR_opt_total_cost;
+                calibration(1).All.NSR = NSR_All;
                 
                 if i == opts.num_refinement-1
                     break;
@@ -435,10 +448,19 @@ if ~(skip == 2)
             [SNR_H_LC, SNR_P, SNR_opt_total_cost, ~, ~] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                     X_square_no_refinement, Y_train, ...
                                                                     intrinsic_matrix, show_pnp_numerical_result); % square withOUT refinement
+            calibration(1).H_SNR = SNR_H_LC;
+            calibration(1).P_SNR = SNR_P;
+            calibration(1).RMSE.SNR = SNR_opt_total_cost;
+            calibration(1).All.SNR = SNR_All;
+            
             [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, ~, ~] = optimize4Points(opt.H_LC.rpy_init, ...
                                                                        X_base_line, Y_base_line, ...
                                                                        intrinsic_matrix, show_pnp_numerical_result); % NOT square withOUT refinement
-
+            calibration(1).H_NSNR = NSNR_H_LC;
+            calibration(1).P_NSNR = NSNR_P;
+            calibration(1).RMSE_NSNR = NSNR_opt_total_cost;
+            calibration(1).All.NSNR = NSNR_All;
+            
             if Alternating
                 for i = 1: opts.num_refinement
                     disp('---------------------')
@@ -446,7 +468,17 @@ if ~(skip == 2)
                     disp('---------------------')
 
                     [SR_H_LC, SR_P, SR_opt_total_cost] = optimizeIoU(X_train, Y_train, intrinsic_matrix); % square with refinement
+                    calibration(1).H_SR = SR_H_LC;
+                    calibration(1).P_SR = SR_P;
+                    calibration(1).RMSE_SR = SR_opt_total_cost;
+                    calibration(1).All.SR = SR_All;
+                    
                     [NSR_H_LC, NSR_P, NSR_opt_total_cost] = optimizeIoU(X_not_square_refinement, Y_base_line, intrinsic_matrix); % NOT square with refinement
+                    calibration(1).H_NSR = NSR_H_LC;
+                    calibration(1).P_NSR = NSR_P;
+                    calibration(1).RMSE_NSR = NSR_opt_total_cost;
+                    calibration(1).All.NSR = NSR_All;
+                    
                     if i == opts.num_refinement
                         break;
                     else
@@ -465,22 +497,23 @@ if ~(skip == 2)
             end
     end
     if skip == 0
+        save(path.save_dir + 'calibration.mat', 'calibration');
         save(path.save_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
         save(path.save_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
         save(path.save_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
         save(path.save_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
         save(path.save_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
     elseif skip == 1
+        save(path.load_dir + 'calibration.mat', 'calibration');
         save(path.load_dir + 'save_validation.mat', 'X_validation', 'Y_validation');
         save(path.load_dir + 'NSNR.mat', 'NSNR_H_LC', 'NSNR_P', 'NSNR_opt_total_cost');
         save(path.load_dir + 'SNR.mat', 'SNR_H_LC', 'SNR_P', 'SNR_opt_total_cost');
         save(path.load_dir + 'NSR.mat', 'NSR_H_LC', 'NSR_P', 'NSR_opt_total_cost');
         save(path.load_dir + 'SR.mat',  'SR_H_LC', 'SR_P', 'SR_opt_total_cost');
     end
-end
-
-% load saved data
-if skip == 2
+else
+    % load saved data
+    load(path.load_dir + 'calibration.mat');
     load(path.load_dir + "NSNR.mat");
     load(path.load_dir + "SNR.mat");
     load(path.load_dir + "NSR.mat");
@@ -501,9 +534,9 @@ disp(' Training Total Error (pixel)')
 disp(sqrt(NSNR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
 disp(sqrt(NSNR_opt_total_cost/size(Y_base_line, 2)))
-error_struc.training_results.id = [bag_training_indices(:)]';
-error_struc.training_results.name = [BagData(bag_training_indices(:)).bagfile];
-error_struc.training_results.NSNR_RMSE = [sqrt(NSNR_opt_total_cost/size(Y_base_line, 2))];
+calibration(1).error_struc.training_results.id = [bag_training_indices(:)]';
+calibration(1).error_struc.training_results.name = [BagData(bag_training_indices(:)).bagfile];
+calibration(1).error_struc.training_results.NSNR_RMSE = [sqrt(NSNR_opt_total_cost/size(Y_base_line, 2))];
 
 disp("****************** NSR-training ******************")
 disp('NSR_H_LC: ')
@@ -518,7 +551,7 @@ disp(' Training Total Error (pixel)')
 disp(sqrt(NSR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
 disp(sqrt(NSR_opt_total_cost/size(Y_base_line, 2))) 
-error_struc.training_results.NSR_RMSE = [sqrt(NSR_opt_total_cost/size(Y_base_line, 2))];
+calibration(1).error_struc.training_results.NSR_RMSE = [sqrt(NSR_opt_total_cost/size(Y_base_line, 2))];
 
 disp("****************** SNR-training ******************")
 disp('SNR_H_LC: ')
@@ -533,7 +566,7 @@ disp(' Training Total Error (pixel)')
 disp(sqrt(SNR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
 disp(sqrt(SNR_opt_total_cost/size(Y_train, 2)))
-error_struc.training_results.SNR_RMSE = [sqrt(SNR_opt_total_cost/size(Y_train, 2))];
+calibration(1).error_struc.training_results.SNR_RMSE = [sqrt(SNR_opt_total_cost/size(Y_train, 2))];
 
 disp("****************** SR-training ******************")
 disp('H_LC: ')
@@ -548,33 +581,53 @@ disp(' Training Total Error (pixel)')
 disp(sqrt(SR_opt_total_cost))
 disp(' Training Error Per Corner (pixel)')
 disp(sqrt(SR_opt_total_cost/size(Y_train, 2)))
-error_struc.training_results.SR_RMSE = [sqrt(SR_opt_total_cost/size(Y_train, 2))];
+calibration(1).error_struc.training_results.SR_RMSE = [sqrt(SR_opt_total_cost/size(Y_train, 2))];
 
+
+[t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
+                                                     opts.num_training, opts, BagData, SNR_P, SR_P);
+[t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
+                                                     opts.num_training, opts, BagData, NSNR_P, NSR_P);
+
+[SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
+                                                     opts.num_validation, opts, BagData, SNR_P, SR_P);
+[NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
+                                                     opts.num_validation, opts, BagData, NSNR_P, NSR_P);
+calibration(1).count.training.SNR = t_SNR_count;
+calibration(1).count.training.SR = t_SR_count;
+calibration(1).count.training.NSR = t_NSR_count;
+calibration(1).count.training.NSNR = t_NSNR_count;
+
+calibration(1).count.validation.SNR = SNR_count;
+calibration(1).count.validation.SR = SR_count;
+calibration(1).count.validation.NSR = NSR_count;
+calibration(1).count.validation.NSNR = NSNR_count;
 
 SR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, SR_P);
 SNR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, SNR_P);
 NSR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, NSR_P);
 NSNR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, NSNR_P);
+
 for i = 1:opts.num_training
         disp('------')
         current_index = bag_training_indices(i);
         fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
-        error_struc.training(i).id = bag_training_indices(i);   
-        error_struc.training(i).name = extractBetween(BagData(bag_training_indices(i)).bagfile,"",".bag");
+        calibration(1).error_struc.training(i).id = bag_training_indices(i);   
+        calibration(1).error_struc.training(i).name = extractBetween(BagData(bag_training_indices(i)).bagfile,"",".bag");
         disp("-- RMS Error Per Corner (pixel)")
         disp(' NSNR training RMS Error Per Corner (pixel)')
         disp(NSNR_training_cost(i).RMSE)
-        error_struc.training(i).NSNR_RMSE = [NSNR_training_cost(i).RMSE];
+        calibration(1).error_struc.training(i).NSNR_RMSE = [NSNR_training_cost(i).RMSE];
         disp(' NSR training RMS Error Per Corner (pixel)')
         disp(NSR_training_cost(i).RMSE)
-        error_struc.training(i).NSR_RMSE = [NSR_training_cost(i).RMSE];
+        calibration(1).error_struc.training(i).NSR_RMSE = [NSR_training_cost(i).RMSE];
         disp(' SNR training RMS Error Per Corner (pixel)')
         disp(SNR_training_cost(i).RMSE)
-        error_struc.training(i).SNR_RMSE = [SNR_training_cost(i).RMSE];
+        calibration(1).error_struc.training(i).SNR_RMSE = [SNR_training_cost(i).RMSE];
         disp(' SR training RMS Error Per Corner (pixel)')
         disp(SR_training_cost(i).RMSE)
-        error_struc.training(i).SR_RMSE = [SR_training_cost(i).RMSE];
-end
+        calibration(1).error_struc.training(i).SR_RMSE = [SR_training_cost(i).RMSE];
+    end
 
 %%% verify corner accuracy
 if validation_flag
@@ -583,60 +636,15 @@ if validation_flag
     NSR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, opts, BagData, NSR_P);
     NSNR_validation_cost = verifyCornerAccuracyWRTDataset(bag_validation_indices, opts, BagData, NSNR_P);
 
-%     [t_SNR_count, t_SR_count]   = inAndOutBeforeAndAfter(bag_training_indices, ...
-%                                                          opts.num_training, opts, BagData, SNR_P, SR_P);
-%     [t_NSNR_count, t_NSR_count] = inAndOutBeforeAndAfter(bag_training_indices, ...
-%                                                          opts.num_training, opts, BagData, NSNR_P, NSR_P);
-%     [SNR_count, SR_count]       = inAndOutBeforeAndAfter(bag_validation_indices, ...
-%                                                          opts.num_validation, opts, BagData, SNR_P, SR_P);
-%     [NSNR_count, NSR_count]     = inAndOutBeforeAndAfter(bag_validation_indices, ...
-%                                                          opts.num_validation, opts, BagData, NSNR_P, NSR_P);
     for i = 1:opts.num_validation
-        current_index = bag_validation_indices(i);
-        error_struc.validation(i).id = bag_validation_indices(i);   
-        error_struc.validation(i).name = extractBetween(BagData(bag_validation_indices(i)).bagfile,"",".bag");
-        error_struc.validation(i).NSNR_RMSE = [NSNR_validation_cost(i).RMSE];
-        error_struc.validation(i).NSR_RMSE = [NSR_validation_cost(i).RMSE];
-        error_struc.validation(i).SNR_RMSE = [SNR_validation_cost(i).RMSE];
-        error_struc.validation(i).SR_RMSE = [SR_validation_cost(i).RMSE];
+        calibration(1).error_struc.validation(i).id = bag_validation_indices(i);   
+        calibration(1).error_struc.validation(i).name = extractBetween(BagData(bag_validation_indices(i)).bagfile,"",".bag");
+        calibration(1).error_struc.validation(i).NSNR_RMSE = [NSNR_validation_cost(i).RMSE];
+        calibration(1).error_struc.validation(i).NSR_RMSE = [NSR_validation_cost(i).RMSE];
+        calibration(1).error_struc.validation(i).SNR_RMSE = [SNR_validation_cost(i).RMSE];
+        calibration(1).error_struc.validation(i).SR_RMSE = [SR_validation_cost(i).RMSE];
     end
 end   
-    
-    %{
-    disp("***************** Training point counting *****************")
-    disp("project full pc (SR)")
-    disp(struct2table(t_SR_count))
-    disp("project full pc (SNR)")
-    disp(struct2table(t_SNR_count))
-    disp("project full pc (NSR)")
-    disp(struct2table(t_NSR_count))
-    disp("project full pc (NSNR)")
-    disp(struct2table(t_NSNR_count))
-    disp("diff")
-    disp(([t_NSR_count(:).count] - [t_NSNR_count(:).count])./[t_NSNR_count(:).count])
-    disp(([t_SR_count(:).count] - [t_SNR_count(:).count])./[t_SNR_count(:).count])
-
-    disp("***************** validation point counting *****************")
-    disp("project full pc (SR)")
-    disp(struct2table(SR_count))
-    disp("project full pc (SNR)")
-    disp(struct2table(SNR_count))
-    disp("project full pc (NSR)")
-    disp(struct2table(NSR_count))
-    disp("project full pc (NSNR)")
-    disp(struct2table(NSNR_count))
-    disp("diff")
-    disp(([NSR_count(:).count] - [NSNR_count(:).count])./[NSNR_count(:).count])
-    disp(([SR_count(:).count] - [SNR_count(:).count])./[SNR_count(:).count])
-    disp("********************************************")
-
-end
-    %}
-
-
-% if ~validation_flag
-%     save(path.save_dir + 'validation_cost' , 'SR_validation_cost', 'SNR_validation_cost', 'NSR_validation_cost', 'NSNR_validation_cost');
-% end
 
 %%% draw results
 % project training target points 
@@ -693,73 +701,27 @@ disp('-- RPY (XYZ):')
 disp(rad2deg(rotm2eul(SR_H_LC(1:3, 1:3), "XYZ")))
 disp('-- T:')
 disp(-inv(SR_H_LC(1:3, 1:3))*SR_H_LC(1:3, 4))
-disp("---- Error table")
-disp("==================================================")
-disp("               training results")
-disp("==================================================")
-disp(struct2table(error_struc.training_results))
-disp("==================================================")
-disp("                training error")
-disp("==================================================")
-disp(struct2table(error_struc.training))
-
-if validation_flag
-    disp("==================================================")
-    disp("              validation error")
-    disp("==================================================")
-    disp(struct2table(error_struc.validation))
-end
 disp("********************************************")
 
-% print out means and normal vectors
-if debug
-    for i = 1 : length(bag_chosen_indices)
-        current_index = bag_chosen_indices(i);
-    %     disp('=====================================')
-    %     fprintf("-dataset: %s\n", bag_with_tag_list(current_index))
-        centroid_vec = [];
-        nv_vec = [];
+if skip == 0
+    save(path.save_dir + 'calibration.mat', 'calibration');
+elseif skip == 1
+    save(path.load_dir + 'calibration.mat', 'calibration');
+end
+disp("***************************************************************************************")
+disp("***************************************************************************************")
+disp("==================")
+disp(" training results")
+disp("==================")
+disp(struct2table(calibration(1).error_struc.training_results))
+disp("==================")
+disp(" training error")
+disp("==================")
+disp(struct2table(calibration(1).error_struc.training))
 
-        for j = 1:BagData(current_index).num_tag % which target
-    %         fprintf("---------------tag: %i\n", j)
-            lidar_target(j).results(i).name = BagData(current_index).bagfile;
-            lidar_target(j).results(i).mean_centriod = mean([BagData(current_index).lidar_target(j).scan(:).centroid], 2)';
-            lidar_target(j).results(i).mean_NV = mean([BagData(current_index).lidar_target(j).scan(:).normal_vector], 2)';
-            lidar_target(j).results(i).std_mean = std([BagData(current_index).lidar_target(j).scan(:).centroid]');
-            lidar_target(j).results(i).std_NV = std([BagData(current_index).lidar_target(j).scan(:).normal_vector]');
-            lidar_target(j).results(i).std_NV_norm_100 = 100*norm(lidar_target(j).results(i).std_NV);
-            centroid_vec = [centroid_vec; lidar_target(j).results(i).mean_centriod];
-            nv_vec = [nv_vec; lidar_target(j).results(i).mean_NV];
-    %         disp("----------pose:")
-    %         disp("--centroid:")
-    %         disp(lidar_target(j).results(i).mean_centriod)
-    %         disp("--normal vector:")
-    %         disp(lidar_target(j).results(i).mean_NV)
-
-    %         disp("----------std:")
-    %         disp("--centroid:")
-    %         disp(lidar_target(j).results(i).std_mean)        
-    %         disp("--normal vector:")
-    %         disp(lidar_target(j).results(i).std_NV)
-        end
-    %     disp("-----diff between tags:")
-    %     disp("--centroid:")
-        results_diff(i).name = BagData(current_index).bagfile;
-        results_diff(i).diff_centroid = diff(centroid_vec, 1, 1);
-        results_diff(i).distance = sqrt(sum((centroid_vec(:,1)- centroid_vec(:,2)).^2, 1));
-    %     disp(results_diff(i).diff_centroid)
-    %     disp("--normal vector:")
-        results_diff(i).diff_NV = diff(nv_vec, 1, 1);
-        results_diff(i).diff_NV_deg = rad2deg(acos(nv_vec(1)'*nv_vec(2)));
-    %     disp(results_diff(i).diff_NV)
-    end
-
-    disp('======================================================================')
-    disp("big target")
-    disp(struct2table(lidar_target(1).results(:)))
-    disp('======================================================================')
-    disp("small target")
-    disp(struct2table(lidar_target(2).results(:)))
-    disp('======================================================================')
-    disp(struct2table(results_diff))
+if validation_flag
+    disp("==================")
+    disp(" validation error")
+    disp("==================")
+    disp(struct2table(calibration(1).error_struc.validation))
 end
