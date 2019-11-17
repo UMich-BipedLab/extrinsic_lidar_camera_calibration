@@ -18,7 +18,7 @@ Just to see the results, please clone this repo, download the [process/optimized
 If you would like to see how the LiDAR vertices are optimized, please place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two paths ([path.bag_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L50) and [path.mat_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L51)) in main.m, and then hit run!
 
 **[Developers and Calibrators]**
-Please follow more detail instruction as below.
+Please follow more detail instruction as [below](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/README.md#running).
 
 
 ## Abstract
