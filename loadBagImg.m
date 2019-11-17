@@ -1,4 +1,4 @@
-function loadBagImg(img_handle, bag_file, display, clean)
+function loadBagImg(img_handle, bag_file_path, bag_file, display, clean)
     if strcmpi("display", display)
         display = 1;
     else
@@ -16,7 +16,7 @@ function loadBagImg(img_handle, bag_file, display, clean)
     end
     % load image
     hold(img_handle, 'on');
-    bagselect = rosbag(bag_file);
+    bagselect = rosbag(bag_file_path + bag_file);
     bagselect2 = select(bagselect,'Time',...
         [bagselect.StartTime bagselect.StartTime + 1],'Topic','/camera/color/image_raw');
     allMsgs = readMessages(bagselect2);
@@ -24,6 +24,7 @@ function loadBagImg(img_handle, bag_file, display, clean)
     imshow(img, 'Parent', img_handle);
     img_handle.XLim = [0 size(img,2)];
     img_handle.YLim = [0 size(img,1)];
+    title(img_handle, bag_file)
     hold(img_handle, 'off');
     
     if display

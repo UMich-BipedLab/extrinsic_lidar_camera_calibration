@@ -1,8 +1,8 @@
-function cost = verifyCornerAccuracyWRTDataset(validation_indices, num_tag_array, opt, bag_data, P)
-    for i = 1:opt.num_validation % which validation data
-        current_index = validation_indices(i);
+function cost = verifyCornerAccuracyWRTDataset(indices, opt, bag_data, P)
+    for i = 1:length(indices) % which validation data
+        current_index = indices(i);
         cost_array = zeros(bag_data(current_index).num_tag, opt.num_lidar_target_pose);
-
+        current_num_poses = bag_data(current_index).num_tag * opt.num_lidar_target_pose * opt.correspondance_per_pose;
         for j = 1:bag_data(current_index).num_tag % which tag in the validation dataset
             for k=1:opt.num_lidar_target_pose % which scan in the validation dataset
                 current_corners_X = [bag_data(current_index).lidar_target(j).scan(k).corners];
@@ -11,7 +11,10 @@ function cost = verifyCornerAccuracyWRTDataset(validation_indices, num_tag_array
                 cost_array(j, k) = scan_cost;
             end
         end
-        cost(i).total_cost = sum(sum(cost_array, 2), 1); % total cost of this dataset
-        cost(i).std = std(cost_array'); % std of cost of each scan
+        cost(i).name = bag_data(current_index).bagfile;
+        cost(i).total_cost = sum(sum(cost_array, 2), 1);
+        cost(i).num_pose = current_num_poses;
+        cost(i).RMSE = sqrt(sum(sum(cost_array, 2), 1)/current_num_poses); % total cost of this dataset
+%         cost(i).std = std(cost_array'); % std of cost of each scan
     end
 end
