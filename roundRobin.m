@@ -15,7 +15,7 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %           and then calibrate 
 %        1: skip optimize lidar target's corners
 %        2: just shown calibration results
-%%% debug (0/1): print more stuff at the end to help debugging
+%%% more_analysis (0/1): print more stuff at the end
 %%% validation_flag (0/1): validate the calibration result if one has
 %%% base_line_method (1/2): 
 %                   1: ransac edges seperately and the intersect edges to
@@ -29,15 +29,16 @@ distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizeAllCorners = 0;
-skip = 1; 
-debug = 0;
+opts.optimizeAllCorners = 0;
+opts.use_top_consistent_vertices = 1;
+skip = 0; 
+more_analysis = 0;
 validation_flag = 1;
 base_line_method = 2;
 calibration_method = "4 points";
 load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
 path.load_dir = "NewPaper/04-Nov-2019 14:59:07/";
-path.load_all_vertices = "NewPaper/15-Oct-2019 16_42_36/";
+path.load_all_vertices = "NewPaper/16-Nov-2019 14:53:58/";
 path.bag_file_path = "/home/brucebot/workspace/griztag/src/griz_tag/bagfiles/matlab/";
 path.mat_file_path = "../../LiDARTag_data/";
 
@@ -105,8 +106,8 @@ opt.H_LC.rpy_init = [90 0 90];
 %  -- used the optimized H_LC to validate the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 random_select = 0;
-trained_ids = [3]; % 3,10,11
-skip_indices = [1, 12]; %% skip non-standard 
+trained_ids = [4]; % 3,10,11
+skip_indices = [1, 2, 3, 12]; %% skip non-standard 
 [BagData, TestData] = getBagData();
 bag_with_tag_list  = [BagData(:).bagfile];
 bag_testing_list = [TestData(:).bagfile];
@@ -253,10 +254,7 @@ if skip == 0
                 for j = 1:BagData(current_index).num_tag
                     fprintf("----Tag %i/%i", j, BagData(current_index).num_tag)
                     % optimize lidar targets corners
-    %                 [BagData(current_index), H_LT] = get4CornersReturnHLT(i, j, opt.H_TL, ...
-    %                                                      path.mat_file_path, BagData(current_index), ...
-    %                                                      pc_iter, opts.num_scan);
-                    [BagData(current_index), H_LT] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt, ...
+                    [BagData(current_index), H_LT] = getAll4CornersReturnHLT(j, opt, ...
                                                          path, BagData(current_index), ...
                                                          opts);
                     % draw camera targets 
@@ -305,11 +303,7 @@ if skip == 0
                 Y_validation_tmp = [];
 
                 for j = 1:BagData(current_index).num_tag
-    %                 [BagData(current_index), ~] = get4CornersReturnHLT(i, j, opt.H_TL, ...
-    %                                                      path.mat_file_path, BagData(current_index), ...
-    %                                                      opts.num_scan, opts.num_lidar_target_pose);
-
-                    [BagData(current_index), ~] = getAll4CornersReturnHLT(optimizeAllCorners, j, opt, ...
+                    [BagData(current_index), ~] = getAll4CornersReturnHLT(j, opt, ...
                                                          path, BagData(current_index), opts);
                     BagData(current_index).camera_target(j).four_corners_line = ...
                                                 point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);
@@ -537,26 +531,26 @@ if skip == 0
     NSR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, NSR_P);
     NSNR_training_cost = verifyCornerAccuracyWRTDataset(bag_training_indices, opts, BagData, NSNR_P);
     for i = 1:opts.num_training
-            disp('------')
-            current_index = bag_training_indices(i);
-            fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
-            calibration(index).error_struc.training(i).id = bag_training_indices(i);   
-            calibration(index).error_struc.training(i).name = extractBetween(BagData(bag_training_indices(i)).bagfile,"",".bag");
-            disp("-- RMS Error Per Corner (pixel)")
-            disp(' NSNR training RMS Error Per Corner (pixel)')
-            disp(NSNR_training_cost(i).RMSE)
-            calibration(index).error_struc.training(i).NSNR_RMSE = [NSNR_training_cost(i).RMSE];
-            disp(' NSR training RMS Error Per Corner (pixel)')
-            disp(NSR_training_cost(i).RMSE)
-            calibration(index).error_struc.training(i).NSR_RMSE = [NSR_training_cost(i).RMSE];
-            disp(' SNR training RMS Error Per Corner (pixel)')
-            disp(SNR_training_cost(i).RMSE)
-            calibration(index).error_struc.training(i).SNR_RMSE = [SNR_training_cost(i).RMSE];
-            disp(' SR training RMS Error Per Corner (pixel)')
-            disp(SR_training_cost(i).RMSE)
-            calibration(index).error_struc.training(i).SR_RMSE = [SR_training_cost(i).RMSE];
-            calibration(index).error_struc.training(i).improve_S = ([SNR_training_cost(i).RMSE] - [SR_training_cost(i).RMSE]) ./ [SNR_training_cost(i).RMSE];
-            calibration(index).error_struc.training(i).improve_NS = ([NSNR_training_cost(i).RMSE] - [NSR_training_cost(i).RMSE]) ./ [NSNR_training_cost(i).RMSE];
+        disp('------')
+        current_index = bag_training_indices(i);
+        fprintf("---dataset: %s\n", bag_with_tag_list(current_index))
+        calibration(index).error_struc.training(i).id = bag_training_indices(i);   
+        calibration(index).error_struc.training(i).name = extractBetween(BagData(bag_training_indices(i)).bagfile,"",".bag");
+        disp("-- RMS Error Per Corner (pixel)")
+        disp(' NSNR training RMS Error Per Corner (pixel)')
+        disp(NSNR_training_cost(i).RMSE)
+        calibration(index).error_struc.training(i).NSNR_RMSE = [NSNR_training_cost(i).RMSE];
+        disp(' NSR training RMS Error Per Corner (pixel)')
+        disp(NSR_training_cost(i).RMSE)
+        calibration(index).error_struc.training(i).NSR_RMSE = [NSR_training_cost(i).RMSE];
+        disp(' SNR training RMS Error Per Corner (pixel)')
+        disp(SNR_training_cost(i).RMSE)
+        calibration(index).error_struc.training(i).SNR_RMSE = [SNR_training_cost(i).RMSE];
+        disp(' SR training RMS Error Per Corner (pixel)')
+        disp(SR_training_cost(i).RMSE)
+        calibration(index).error_struc.training(i).SR_RMSE = [SR_training_cost(i).RMSE];
+        calibration(index).error_struc.training(i).improve_S = ([SNR_training_cost(i).RMSE] - [SR_training_cost(i).RMSE]) ./ [SNR_training_cost(i).RMSE];
+        calibration(index).error_struc.training(i).improve_NS = ([NSNR_training_cost(i).RMSE] - [NSR_training_cost(i).RMSE]) ./ [NSNR_training_cost(i).RMSE];
     end
     % 
     % %%% verify corner accuracy
@@ -579,7 +573,7 @@ if skip == 0
             calibration(index).error_struc.validation(i).id = bag_validation_indices(i);   
             calibration(index).error_struc.validation(i).name = extractBetween(BagData(bag_validation_indices(i)).bagfile,"",".bag");
             calibration(index).error_struc.validation(i).NSNR_RMSE = [NSNR_validation_cost(i).RMSE];
-            calibration(index).erlror_struc.validation(i).NSR_RMSE = [NSR_validation_cost(i).RMSE];
+            calibration(index).error_struc.validation(i).NSR_RMSE = [NSR_validation_cost(i).RMSE];
             calibration(index).error_struc.validation(i).SNR_RMSE = [SNR_validation_cost(i).RMSE];
             calibration(index).error_struc.validation(i).SR_RMSE = [SR_validation_cost(i).RMSE];
             calibration(index).error_struc.validation(i).improve_S = ([SNR_validation_cost(i).RMSE] - [SR_validation_cost(i).RMSE])./[SNR_validation_cost(i).RMSE];
@@ -757,8 +751,6 @@ sqrt(trace(cov_struct.NSR))
 sqrt(trace(cov_struct.NSNR))
 
 %% Calculate in-and-out points 
-clc
-
 analysis(total_num_dataset).H_SR(total_num_dataset).diff_H = struct();
 for index=1:total_num_dataset
     if  ismember(index, skip_indices)
@@ -775,22 +767,22 @@ for index=1:total_num_dataset
     analysis(index).validation_geometry = ([calibration(index).count.validation.NSR.count] - ...
                                               [calibration(index).count.validation.NSNR.count]);
     analysis(index).validation_geometry_fraction = [analysis(index).validation_geometry] ./ [calibration(index).count.validation.SNR.total_num_point];
-                                          
-                                          
+
+
     analysis(index).training_L1 = ([calibration(index).count.training.SR.count] - [calibration(index).count.training.SNR.count]);
     analysis(index).training_L1_fraction = [analysis(index).training_L1] ./ [calibration(index).count.training.SNR.total_num_point];
     analysis(index).training_geometry = ([calibration(index).count.training.NSR.count] - [calibration(index).count.training.NSNR.count]);
     analysis(index).training_geometry_fraction = [analysis(index).training_geometry] ./ [calibration(index).count.training.SNR.total_num_point];
-    
+
     analysis(index).validation_L1_sum = sum([calibration(index).count.validation.SR.count] - ...
                                         [calibration(index).count.validation.SNR.count]);
     analysis(index).validation_geometry_sum = sum([calibration(index).count.validation.NSR.count] - ...
                                               [calibration(index).count.validation.NSNR.count]);
-    
+
     analysis(index).training_L1_sum = sum([calibration(index).count.training.SR.count] - [calibration(index).count.training.SNR.count]);
     analysis(index).training_geometry_sum = sum([calibration(index).count.training.NSR.count] - [calibration(index).count.training.NSNR.count]);
-    
-    
+
+
     disp("***************************************************************************************")
     disp("***************************************************************************************")
     disp("==================")
@@ -808,7 +800,7 @@ for index=1:total_num_dataset
         disp("==================")
         disp(struct2table(calibration(index).error_struc.validation))
     end
-    
+
     % H_SR
     H_current = calibration(index).H_SR;
     for j=1:total_num_dataset
@@ -820,7 +812,7 @@ for index=1:total_num_dataset
     end
     analysis(index).H_SR_std = std([analysis(index).H_SR(:).diff_H]);
     analysis(index).H_SR_sum = sum([analysis(index).H_SR(:).diff_H]);
-    
+
     % H_SNR
     H_current = calibration(index).H_SNR;
     for j=1:total_num_dataset
@@ -832,7 +824,7 @@ for index=1:total_num_dataset
     end
     analysis(index).H_SNR_std = std([analysis(index).H_SNR(:).diff_H]);
     analysis(index).H_SNR_sum = sum([analysis(index).H_SNR(:).diff_H]);
-    
+
     % H_NSR
     H_current = calibration(index).H_NSR;
     for j=1:total_num_dataset
@@ -844,7 +836,7 @@ for index=1:total_num_dataset
     end
     analysis(index).H_NSR_std = std([analysis(index).H_NSR(:).diff_H]);
     analysis(index).H_NSR_sum = sum([analysis(index).H_NSR(:).diff_H]);
-    
+
     % H_NSNR
     H_current = calibration(index).H_NSNR;
     for j=1:total_num_dataset
@@ -857,64 +849,105 @@ for index=1:total_num_dataset
     analysis(index).H_NSNR_std = std([analysis(index).H_NSNR(:).diff_H]);
     analysis(index).H_NSNR_sum = sum([analysis(index).H_NSNR(:).diff_H]);
 end
-
-disp("L1 validation")
-disp((reshape([analysis(:).validation_L1],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
-disp("L1 validation fraction")
-disp((100*reshape([analysis(:).validation_L1_fraction],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
-
-disp("Geometry validation")
-disp((reshape([analysis(:).validation_geometry],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
-disp("Geometry validation fraction")
-disp((100*reshape([analysis(:).validation_geometry_fraction],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
-
-disp("L1 training")
-disp(([analysis(:).training_L1]))
-disp("L1 training fraction")
-disp((100*[analysis(:).training_L1_fraction]))
-disp("Geometry training")
-disp(([analysis(:).training_geometry]))
-disp("Geometry training fraction")
-disp((100*[analysis(:).training_geometry_fraction]))    
     
+if more_analysis
+    disp("L1 validation")
+    disp((reshape([analysis(:).validation_L1],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
+    disp("L1 validation fraction")
+    disp((100*reshape([analysis(:).validation_L1_fraction],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
 
-% counting_summary(total_num_dataset).
-% for i = 1:total_num_dataset
-%     if  ismember(i, skip_indices)
-%         continue
-%     end
-%     fprintf("i= %i\n", i)
-% 
-% end
+    disp("Geometry validation")
+    disp((reshape([analysis(:).validation_geometry],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
+    disp("Geometry validation fraction")
+    disp((100*reshape([analysis(:).validation_geometry_fraction],[total_num_dataset-length(skip_indices)-1,total_num_dataset-length(skip_indices)])'))
 
-%% plot
+    disp("L1 training")
+    disp(([analysis(:).training_L1]))
+    disp("L1 training fraction")
+    disp((100*[analysis(:).training_L1_fraction]))
+    disp("Geometry training")
+    disp(([analysis(:).training_geometry]))
+    disp("Geometry training fraction")
+    disp((100*[analysis(:).training_geometry_fraction]))    
 
-figure()
-hold on
-x = linspace(1,length([analysis(:).H_SR_std]), length([analysis(:).H_SR_std]));
-plot(x, [analysis(:).H_SR_std])
-plot(x, [analysis(:).H_SNR_std])
-plot(x, [analysis(:).H_NSR_std])
-plot(x, [analysis(:).H_NSNR_std])
-legend("H_{SR}-std","H_{SNR}-std","H_{NSR}-std","H_{NSNR}-std")
+    % plot
+    figure()
+    hold on
+    x = linspace(1,length([analysis(:).H_SR_std]), length([analysis(:).H_SR_std]));
+    plot(x, [analysis(:).H_SR_std])
+    plot(x, [analysis(:).H_SNR_std])
+    plot(x, [analysis(:).H_NSR_std])
+    plot(x, [analysis(:).H_NSNR_std])
+    legend("H_{SR}-std","H_{SNR}-std","H_{NSR}-std","H_{NSNR}-std")
 
-figure()
-hold on
-plot(x, 100*[[analysis(:).H_SNR_std] - [analysis(:).H_SR_std]] ./ [analysis(:).H_SNR_std])
-plot(x, 100*[[analysis(:).H_NSNR_std] - [analysis(:).H_NSR_std]] ./ [analysis(:).H_NSNR_std])
-legend("H_{SR}-std - H_{SNR}-std","H_{NSR}-std - H_{NSNR}-std")
+    figure()
+    hold on
+    plot(x, 100*[[analysis(:).H_SNR_std] - [analysis(:).H_SR_std]] ./ [analysis(:).H_SNR_std])
+    plot(x, 100*[[analysis(:).H_NSNR_std] - [analysis(:).H_NSR_std]] ./ [analysis(:).H_NSNR_std])
+    legend("H_{SR}-std - H_{SNR}-std","H_{NSR}-std - H_{NSNR}-std")
 
 
-analysis_summary.sum.H_SR_std = sum([analysis(:).H_SR_std]);
-analysis_summary.sum.H_SNR_std = sum([analysis(:).H_SNR_std]);
-analysis_summary.sum.H_NSR_std = sum([analysis(:).H_NSR_std]);
-analysis_summary.sum.H_NSNR_std = sum([analysis(:).H_NSNR_std]); 
-disp("==================")
-disp("sum of std")
-disp("==================")
-disp(struct2table(analysis_summary.sum))
+    analysis_summary.sum.H_SR_std = sum([analysis(:).H_SR_std]);
+    analysis_summary.sum.H_SNR_std = sum([analysis(:).H_SNR_std]);
+    analysis_summary.sum.H_NSR_std = sum([analysis(:).H_NSR_std]);
+    analysis_summary.sum.H_NSNR_std = sum([analysis(:).H_NSNR_std]); 
+    disp("==================")
+    disp("sum of std")
+    disp("==================")
+    disp(struct2table(analysis_summary.sum))
+    save(path.save_dir + 'analysis.mat', 'analysis_summary', 'analysis');
 
-save(path.save_dir + 'analysis.mat', 'analysis_summary', 'analysis');
+    % print out means and normal vectors
+    for i = 1 : length(bag_chosen_indices)
+        current_index = bag_chosen_indices(i);
+    %     disp('=====================================')
+    %     fprintf("-dataset: %s\n", bag_with_tag_list(current_index))
+        centroid_vec = [];
+        nv_vec = [];
+
+        for j = 1:BagData(current_index).num_tag % which target
+    %         fprintf("---------------tag: %i\n", j)
+            lidar_target(j).results(i).name = BagData(current_index).bagfile;
+            lidar_target(j).results(i).mean_centriod = mean([BagData(current_index).lidar_target(j).scan(:).centroid], 2)';
+            lidar_target(j).results(i).mean_NV = mean([BagData(current_index).lidar_target(j).scan(:).normal_vector], 2)';
+            lidar_target(j).results(i).std_mean = std([BagData(current_index).lidar_target(j).scan(:).centroid]');
+            lidar_target(j).results(i).std_NV = std([BagData(current_index).lidar_target(j).scan(:).normal_vector]');
+            lidar_target(j).results(i).std_NV_norm_100 = 100*norm(lidar_target(j).results(i).std_NV);
+            centroid_vec = [centroid_vec; lidar_target(j).results(i).mean_centriod];
+            nv_vec = [nv_vec; lidar_target(j).results(i).mean_NV];
+    %         disp("----------pose:")
+    %         disp("--centroid:")
+    %         disp(lidar_target(j).results(i).mean_centriod)
+    %         disp("--normal vector:")
+    %         disp(lidar_target(j).results(i).mean_NV)
+
+    %         disp("----------std:")
+    %         disp("--centroid:")
+    %         disp(lidar_target(j).results(i).std_mean)        
+    %         disp("--normal vector:")
+    %         disp(lidar_target(j).results(i).std_NV)
+        end
+    %     disp("-----diff between tags:")
+    %     disp("--centroid:")
+        results_diff(i).name = BagData(current_index).bagfile;
+        results_diff(i).diff_centroid = diff(centroid_vec, 1, 1);
+        results_diff(i).distance = sqrt(sum((centroid_vec(:,1)- centroid_vec(:,2)).^2, 1));
+    %     disp(results_diff(i).diff_centroid)
+    %     disp("--normal vector:")
+        results_diff(i).diff_NV = diff(nv_vec, 1, 1);
+        results_diff(i).diff_NV_deg = rad2deg(acos(nv_vec(1)'*nv_vec(2)));
+    %     disp(results_diff(i).diff_NV)
+    end
+
+    disp('======================================================================')
+    disp("big target")
+    disp(struct2table(lidar_target(1).results(:)))
+    disp('======================================================================')
+    disp("small target")
+    disp(struct2table(lidar_target(2).results(:)))
+    disp('======================================================================')
+    disp(struct2table(results_diff))
+end
 % analysis_summary.std.H_SR_std = std([analysis(:).H_SR_std]);
 % analysis_summary.std.H_SNR_std = std([analysis(:).H_SNR_std]);
 % analysis_summary.std.H_NSR_std = std([analysis(:).H_NSR_std]);
