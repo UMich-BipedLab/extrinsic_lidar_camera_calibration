@@ -2,15 +2,20 @@
 ## Overview
 This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration ([PDF](https://arxiv.org/abs/1910.03126)). We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
 
+**[Super Super Quick Start]**
+Just to see the results, please clone this repo, download the [process/optimized data](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) into ALL_LiDAR_vertices and change the [path.load_dir](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L49) to ALL_LiDAR_vertices in main.m, and then hit run!
 
 **[Super Quick Start]**
-To run the testing code, please clone this repo, place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/main.m#L43) in main.m, and then hit run!
+If you would like to see how the LiDAR vertices are optimized, please place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two paths ([path.bag_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L50) and [path.mat_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L51)) in main.m, and then hit run!
+
+**[Developers and Calibrators]**
+Please follow more detail instruction as below.
 
 * Authors: Bruce JK Huang and Jessy W. Grizzle
 * Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
 * Affiliation: [The Biped Lab](https://www.biped.solutions/), the University of Michigan
 
-This package has been tested under MATLAB 2019a and Ubuntu 16.04.
+This package has been tested under **MATLAB 2019a** and **Ubuntu 16.04**.
 More detailed introduction will be updated in a week. Sorry for the inconvenience!
 
 ## Abstract
@@ -33,13 +38,11 @@ The below shows that a calibration result with little disturbance from the well-
 TODO
 
 
-## Overall pipeline (coming strong in a week)
-TODO
-
-
 ## Presentation and Video (coming strong in a week)
 https://www.brucerobot.com/
 
+## Calibration Targets
+Any **square** targets would be fine. The dimension is assumed known.
 
 ## Installation 
 * Which toolboxes are used in this package: 
@@ -51,13 +54,37 @@ https://www.brucerobot.com/
 * Dataset: download from [here](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset).
 
 ## Dataset 
+Please download optimized LiDAR vertices from [here](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) and put them into ALL_LiDAR_vertices folder.
+
 Please download point cloud mat files from [here](https://drive.google.com/drive/folders/1rI3vPvPOJ1ib4i1LMqw66habZEf4SwEr?usp=sharing) and put them into LiDARTag_data folder.
 
-Please downlaod bagfiles from [here](https://drive.google.com/drive/folders/1qawEuUBsC2gQJsHejLEuga2nhERKWRa5?usp=sharing) and put them into bagfiles folder.
+Please download bagfiles from [here](https://drive.google.com/drive/folders/1qawEuUBsC2gQJsHejLEuga2nhERKWRa5?usp=sharing) and put them into bagfiles folder.
 
 
 ## Running
-**[quick start]** To run the testing code, please clone this repo, place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two [paths](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/main.m#L43) in main.m, and then hit run!
+**[Super Super Quick Start]**
+Just to see the results, please clone this repo, download the [process/optimized data](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) into ALL_LiDAR_vertices and change the [path.load_dir](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L49) to ALL_LiDAR_vertices in main.m, and then hit run!
+
+**[Super Quick Start]**
+If you would like to see how the LiDAR vertices are optimized, please place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two paths ([path.bag_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L50) and [path.mat_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L51)) in main.m, and then hit run!
+
+
+**[Calibrators]**
+- Please first try the [Super Super Quick Start] section to make sure you can run this code.
+- Use _justCalibrate.m_ file
+- Find out your camera intrinsic matrix and write them in the _justCalibrate.m_ file. 
+- Give initial guess to the LiDAR to camera transformation
+- Edit the _trained_ids_ and _skip_indices_ (ids are from getBagData.m).
+- If you have more validation dataset (containing targets), set the _validation_flag_ to 1 and then use put the related information to _getBagData.m_.
+- Place several _square_ boards with known dimensions. When placing boards, make sure the left corner is taller than the right corner.
+- Use you favorite methods to extract corners of camera targets and then write them in [getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). When writing the corners, Please follow **top-left-right-bottom** order. 
+- Given point patches of LiDAR targets, saved them into .mat files and also put them getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). Please make sure you have correctly match your _lidar_target_ with _camera_target_. 
+- RUN _justCalibrate.m_! That's it!
+
+note: You can place any number of targets with different size in different datasets.
+
+**[Developers]**
+Please download all datasets if you like to play around.
 
 **[Dataset structure]**
 Put _ALL information of datasets_ into [getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). 
