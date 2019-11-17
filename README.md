@@ -1,6 +1,15 @@
-# extrinsic_lidar_camera_calibration
+# extrinsic_lidar_camera_calibration 
 ## Overview
-This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: Improvements to Target-Based 3D LiDAR to Camera Calibration ([PDF](https://arxiv.org/abs/1910.03126)). We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
+This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: **Improvements to Target-Based 3D LiDAR to Camera Calibration** ([PDF](https://arxiv.org/abs/1910.03126)). We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
+
+* Authors: Bruce JK Huang and Jessy W. Grizzle
+* Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
+* Affiliation: [The Biped Lab](https://www.biped.solutions/), the University of Michigan
+
+This package has been tested under **MATLAB 2019a** and **Ubuntu 16.04**.
+
+**[Issues]**
+If you encounter _any_ issues, I would be happy to help. If you cannot find a related one in the existing issues, please open a new one. I will try my best to help! 
 
 **[Super Super Quick Start]**
 Just to see the results, please clone this repo, download the [process/optimized data](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) into ALL_LiDAR_vertices and change the [path.load_dir](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L49) to ALL_LiDAR_vertices in main.m, and then hit run!
@@ -11,12 +20,6 @@ If you would like to see how the LiDAR vertices are optimized, please place the 
 **[Developers and Calibrators]**
 Please follow more detail instruction as below.
 
-* Authors: Bruce JK Huang and Jessy W. Grizzle
-* Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
-* Affiliation: [The Biped Lab](https://www.biped.solutions/), the University of Michigan
-
-This package has been tested under **MATLAB 2019a** and **Ubuntu 16.04**.
-More detailed introduction will be updated in a week. Sorry for the inconvenience!
 
 ## Abstract
 The homogeneous transformation between a LiDAR and monocular camera is required for sensor fusion tasks, such as SLAM. While determining such a transformation is not considered glamorous in any sense of the word, it is nonetheless crucial for many modern autonomous systems. Indeed, an error of a few degrees in rotation or a few percent in translation can lead to 20 cm translation errors at a distance of 5 m when overlaying a LiDAR image on a camera image. The biggest impediments to determining the transformation accurately are the relative sparsity of LiDAR point clouds and systematic errors in their distance measurements. This paper proposes (1) the use of targets of known dimension and geometry to ameliorate target pose estimation in face of the quantization and systematic errors inherent in a LiDAR image of a target, and (2) a fitting method for the LiDAR to monocular camera transformation that fundamentally assumes the camera image data is the most accurate information in one's possession. 
@@ -34,15 +37,12 @@ The below shows that a calibration result with little disturbance from the well-
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/disturbance.png" width="640"> 
 <img src="https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/figure/undisturbance.png" width="640">
 
-## Why this package? (coming strong in a week)
-TODO
-
-
 ## Presentation and Video (coming strong in a week)
 https://www.brucerobot.com/
 
 ## Calibration Targets
-Any **square** targets would be fine. The dimension is assumed known.
+Any **square** targets would be fine. The dimensions are assumed known.
+note: You can place any number of targets with different size in different datasets.
 
 ## Installation 
 * Which toolboxes are used in this package: 
@@ -98,14 +98,6 @@ This funciton returns two data structure: TestData and BagData.
     - tag_size: size of this target
   - camera_target
     - corners: corner coordinates of the camera targets
-
-## Important Parameters (coming strong in a week)
-TODO
-
-
-## Examples (coming strong in a week)
-TODO
-
 
 # Qualitative results
 For the method GL_1-R trained on S_1, the LiDAR point cloud has been projected into the image plane for the other data sets and marked in green. The red circles highlight various poles, door edges, desk legs, monitors, and sidewalk curbs where the quality of the alignment can be best judged. The reader may find other areas of interest. Enlarge in your browser for best viewing. 
