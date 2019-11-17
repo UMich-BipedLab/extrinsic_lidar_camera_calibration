@@ -74,11 +74,11 @@ If you would like to see how the LiDAR vertices are optimized, please place the 
 - Use _justCalibrate.m_ file
 - Find out your camera intrinsic matrix and write them in the _justCalibrate.m_ file. 
 - Give initial guess to the LiDAR to camera transformation
-- Edit the _trained_ids_ and _skip_indices_ (ids are from getBagData.m).
+- Edit the _trained_ids_ and _skip_indices_ (ids are from _getBagData.m_).
 - If you have more validation dataset (containing targets), set the _validation_flag_ to 1 and then use put the related information to _getBagData.m_.
 - Place several _square_ boards with known dimensions. When placing boards, make sure the left corner is taller than the right corner.
-- Use you favorite methods to extract corners of camera targets and then write them in [getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). When writing the corners, Please follow **top-left-right-bottom** order. 
-- Given point patches of LiDAR targets, saved them into .mat files and also put them getBagData.m](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/73a614517c7f6077e49368002b8ee563605c9977/getBagData.m#L1). Please make sure you have correctly match your _lidar_target_ with _camera_target_. 
+- Use you favorite methods to extract corners of camera targets and then write them in _getBagData.m_. When writing the corners, Please follow **top-left-right-bottom** order. 
+- Given point patches of LiDAR targets, saved them into .mat files and also put them _getBagData.m_. Please make sure you have correctly match your _lidar_target_ with _camera_target_. 
 - RUN _justCalibrate.m_! That's it!
 
 note: You can place any number of targets with different size in different datasets.
