@@ -1,0 +1,12 @@
+*.bag
+*.mat
+*.m~
+*.txt
+*.py
+*.sh
+*result*
+ctags
+ctags_file
+*diary*
+
+
