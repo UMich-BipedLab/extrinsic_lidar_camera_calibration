@@ -30,9 +30,9 @@
 %}
 
 clc, clear
-%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% camera parameters
-%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 intrinsic_matrix = [616.3681640625, 0.0,            319.93463134765625;
                     0.0,            616.7451171875, 243.6385955810547;
                     0.0, 0.0, 1.0];
@@ -54,11 +54,22 @@ skip_indices = [1, 2, 3, 7, 12]; %% skip non-standard
 validation_flag = 1; 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%% You usually do not need change setting below %%%%%%%%%%%%%%%%%%%%
+%%% path.load_dir: directory of saved files
+%%% load_all_vertices: pre-calculated vertices (pick the top-5 consistent)
+%%% bag_file_path: bag files of images 
+%%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+path.load_dir = "load_data/";
+path.load_all_vertices = "ALL_LiDAR_vertices/";
+path.bag_file_path = "bagfiles/";
+path.mat_file_path = "LiDARTag_data/";
+path.event_name = '';
 
 
 
+%=========================================================================%
+%============== You usually do not need change setting below =============%
+%=========================================================================%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% parameters of user setting
 %%% optimizeAllCorners (0/1): <default: 1>
@@ -140,26 +151,6 @@ base_line.num_scan = 5;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 opts.calibration_method = "4 points";
 % opts.calibration_method = "IoU";
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% path.load_dir: directory of saved files
-%%% load_all_vertices: pre-calculated vertices (pick the top-5 consistent)
-%%% bag_file_path: bag files of images 
-%%% mat_file_path: mat files of extracted lidar target's point clouds
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-path.load_dir = "Paper-C71/06-Oct-2019 13:53:31/";
-path.load_dir = "NewPaper/15-Nov-2019 19:00:42/";
-path.load_all_vertices = "NewPaper/16-Nov-2019 14:53:58/";
-path.bag_file_path = "/home/brucebot/workspace/griztag/src/matlab/matlab/slider/repo/bagfiles/";
-path.mat_file_path = "../../LiDARTag_data/";
-path.event_name = '';
-% path.event_name = 'weight1eM5';
-
-% path.load_dir = "load_data/";
-% path.load_all_vertices = "ALL_LiDAR_vertices/";
-% path.bag_file_path = "bagfiles/";
-% path.mat_file_path = "LiDARTag_data/";
 
 % save into results into folder         
 path.save_name = "RSS2020";
