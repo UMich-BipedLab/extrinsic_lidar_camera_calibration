@@ -1,6 +1,7 @@
 # extrinsic_lidar_camera_calibration 
 **[Note]**
-This branch, original master branch, supports the functions stated in the last [paper](https://arxiv.org/pdf/1910.03126v1.pdf). Some of them have been removed from the master branch, which describes the latest [paper](https://arxiv.org/pdf/1910.03126v2.pdf).
+This branch was the original master branch from Oct 2019 to March 2020. It supports the functions associated with the first version of the Extrinsic Calibration paper that we placed on the arXiv, namely [paper](https://arxiv.org/pdf/1910.03126v1.pdf). The current Master Branch supports a revised version of the arXiv paper, namely [paper](https://arxiv.org/pdf/1910.03126v2.pdf). Please be aware that there are functions in this older branch that have been removed from the current Master Branch.
+
 
 ## Overview
 This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: **Improvements to Target-Based 3D LiDAR to Camera Calibration** ([PDF](https://arxiv.org/pdf/1910.03126v1.pdf)). We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
