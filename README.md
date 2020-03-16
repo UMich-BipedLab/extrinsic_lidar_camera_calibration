@@ -1,12 +1,17 @@
 # extrinsic_lidar_camera_calibration 
+**[Note]**
+This branch supports the functions stated in the last [paper](https://arxiv.org/pdf/1910.03126v1.pdf). Some of them have been removed from the master branch, which describes the latest [paper](https://arxiv.org/pdf/1910.03126v2.pdf).
+
 ## Overview
-This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: **Improvements to Target-Based 3D LiDAR to Camera Calibration** ([PDF](https://arxiv.org/abs/1910.03126)). We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
+This is a package for extrinsic calibration between a 3D LiDAR and a camera, described in paper: **Improvements to Target-Based 3D LiDAR to Camera Calibration** ([PDF](https://arxiv.org/pdf/1910.03126v1.pdf)). We evaluated our proposed methods and compared them with other approaches in a round-robin validation study, including qualitative results and quantitative results, where we use image corners as ground truth to evaluate our projection accuracy.
 
 * Authors: Bruce JK Huang and Jessy W. Grizzle
 * Maintainer: [Bruce JK Huang](https://www.brucerobot.com/), brucejkh[at]gmail.com
 * Affiliation: [The Biped Lab](https://www.biped.solutions/), the University of Michigan
 
 This package has been tested under **MATLAB 2019a** and **Ubuntu 16.04**.
+
+ 
 
 **[Issues]**
 If you encounter _any_ issues, I would be happy to help. If you cannot find a related one in the existing issues, please open a new one. I will try my best to help! 
@@ -155,7 +160,7 @@ For the method GL_1-R, five sets of estimated LiDAR vertices for each target hav
 
 ## Citations
 The detail is described in: 
-Jiunn-Kai Huang and J. Grizzle, "Improvements to Target-Based 3D LiDAR to Camera Calibration" ([PDF](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/LiDAR2CameraCalibration.pdf))([arXiv](https://arxiv.org/abs/1910.03126))
+Jiunn-Kai Huang and J. Grizzle, "Improvements to Target-Based 3D LiDAR to Camera Calibration" ([PDF](https://arxiv.org/pdf/1910.03126v2.pdf))([arXiv](https://arxiv.org/abs/1910.03126))
 ```
 @article{huang2019improvements,
   title={Improvements to Target-Based 3D LiDAR to Camera Calibration},
