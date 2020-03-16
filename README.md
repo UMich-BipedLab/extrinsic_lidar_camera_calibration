@@ -98,14 +98,14 @@ Please download bagfiles from [here](https://drive.google.com/drive/folders/1qaw
 
 ## Running
 **[Super Super Quick Start]**
-Just to see the results, please clone this repo, download the [process/optimized data](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) into ALL_LiDAR_vertices and change the [path.load_dir](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L49) to ALL_LiDAR_vertices in main.m, and then hit run!
+Just to see the results, please clone this repo, download the [process/optimized data](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) into [load_all_vertices folder](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/15e2d941053c6d68a18746d4a28c92f7717756d1/justCalibrate.m#L63) and change the [path.load_dir](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/15e2d941053c6d68a18746d4a28c92f7717756d1/justCalibrate.m#L62) to load_all_vertices folder in justCalibrate.m, and then hit run!
 
 **[Super Quick Start]**
-If you would like to see how the LiDAR vertices are optimized, please place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two paths ([path.bag_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L50) and [path.mat_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/901a5b4ff4a054b3f19ebb386ef1bfcd4f8c334d/main.m#L51)) in justCalibrate.m, and then hit run!
+If you would like to see how the LiDAR vertices are optimized, please place the [test datasets](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset) in folders, change the two paths ([path.bag_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/15e2d941053c6d68a18746d4a28c92f7717756d1/justCalibrate.m#L64) and [path.mat_file_path](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/15e2d941053c6d68a18746d4a28c92f7717756d1/justCalibrate.m#L65)) in justCalibrate.m, and then hit run!
 
 
 **[Calibrators]**
-- Please first try the [Super Super Quick Start] section to make sure you can run this code.
+- Please first try the [Super Super Quick Start] section to ensure you can run this code.
 - Use _justCalibrate.m_ file
 - Find out your camera intrinsic matrix and write them in the _justCalibrate.m_ file. 
 - Give initial guess to the LiDAR to camera transformation
