@@ -36,10 +36,11 @@ the number of targets used in training. Units are pixel per corner.
 |      |# Tag|    2   |    4   |    6   |   8   |
 |:----:|:---:| :-----:| :-----:| :-----:|:-----:|
 | Baseline (previous state-of-the-art)  | mean| 10.3773| 4.9645 | 4.3789 | 3.9940|
-| Proposed method | mean| **3.8523** | **1.8939** | **1.6817** | **1.7547**|
+| Proposed method - PnP | mean| **3.8523** | **1.8939** | **1.6817** | **1.7547**|
+| Proposed method - IoU | mean| 4.9019 | 2.2442 | 1.7631 | 1.7837 |
 | Baseline (previous state-of-the-art)  | std | 7.0887 | 1.9532 | 1.7771 | 2.0467|
-| Proposed method  | std | **2.4155** | **0.5609** | **0.5516** | **0.5419**|
-
+| Proposed method  - PnP | std | **2.4155** | **0.5609** | 0.5516 | 0.5419|
+| Proposed method - IoU | std | 2.5060| 0.7162 | **0.5070** | **0.4566**|
 
 ## Application Videos 
 The 3D-LiDAR map shown in the videos used this package to calibrate the LiDAR to camera (to get the transformatoin between the LiDAR and camera). Briefly speaking, we project point coulds from the LiDAR back to the semantic labeled images using the obtained transformation and then associate labels with the point to build the 3D LiDAR semantic map.
