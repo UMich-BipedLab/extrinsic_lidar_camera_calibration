@@ -1,5 +1,8 @@
 # extrinsic_lidar_camera_calibration 
-**[Release Note]**
+**[Release Note July 2020]**
+This work has been accepted by IEEE Access (to appear) and has been uploaded to arXiv at [here](https://arxiv.org/pdf/1910.03126v3.pdf).
+
+**[Release Note March 2020]**
 This is the new master branch from March 2020. The current master branch supports a revised version of the arXiv paper, namely [paper](https://arxiv.org/pdf/1910.03126v2.pdf). The original master branch from Oct 2019 to March 2020 is now moved to v1-2019 branch, and it supports the functions associated with the first version of the Extrinsic Calibration paper that we placed on the arXiv, namely [paper](https://arxiv.org/pdf/1910.03126v1.pdf). Please be aware that there are functions in the older branch that have been removed from the current master branch. 
  
 
