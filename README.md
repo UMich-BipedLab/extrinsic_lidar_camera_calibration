@@ -1,6 +1,6 @@
 # extrinsic_lidar_camera_calibration 
 **[Release Note July 2020]**
-This work has been accepted by IEEE Access (to appear) and has been uploaded to arXiv at [here](https://arxiv.org/pdf/1910.03126v3.pdf).
+This work has been accepted by [IEEE Access](https://ieeexplore.ieee.org/document/9145571) and has been uploaded to [arXiv](https://arxiv.org/pdf/1910.03126v3.pdf).
 
 **[Release Note March 2020]**
 This is the new master branch from March 2020. The current master branch supports a revised version of the arXiv paper, namely [paper](https://arxiv.org/pdf/1910.03126v2.pdf). The original master branch from Oct 2019 to March 2020 is now moved to v1-2019 branch, and it supports the functions associated with the first version of the Extrinsic Calibration paper that we placed on the arXiv, namely [paper](https://arxiv.org/pdf/1910.03126v1.pdf). Please be aware that there are functions in the older branch that have been removed from the current master branch. 
@@ -178,12 +178,14 @@ For the method GL_1-R, five sets of estimated LiDAR vertices for each target hav
 The detail is described in: 
 Jiunn-Kai Huang and J. Grizzle, "Improvements to Target-Based 3D LiDAR to Camera Calibration" ([PDF](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/blob/master/LiDAR2CameraCalibration.pdf))([arXiv](https://arxiv.org/abs/1910.03126))
 ```
-@article{huang2019improvements,
-  title={Improvements to Target-Based 3D LiDAR to Camera Calibration},
-  author={Huang, Jiunn-Kai and Grizzle, Jessy W},
-  journal={arXiv preprint arXiv:1910.03126},
-  year={2019}
-}
+@article{huang2020improvements,
+  author={J. {Huang} and J. W. {Grizzle}},
+  journal={IEEE Access}, 
+  title={Improvements to Target-Based 3D LiDAR to Camera Calibration}, 
+  year={2020},
+  volume={8},
+  number={},
+  pages={134101-134110},}
 ```
 If you use [LiDARTag](https://arxiv.org/abs/1908.10349) as you LiDAR targets, please cite 
 ```
