@@ -29,35 +29,28 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function [final_H, final_P, min_cost, final_result, results] = optimize4Points(opt, X, Y, intrinsic, display)
+function [final_H, final_P, min_cost, final_result, results] = optimize4Points(opt_rpy_init, opt_T_init, X, Y, intrinsic, display)
         
     % prepare for random initilization (not use for now)
     for i = 1:1
-        theta_x = optimvar('theta_x', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
-        theta_y = optimvar('theta_y', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
-        theta_z = optimvar('theta_z', 1, 1,'LowerBound',-180,'UpperBound',180); % 1x1
+        theta_x = optimvar('theta_x', 1, 1,'LowerBound',-220,'UpperBound',220); % 1x1
+        theta_y = optimvar('theta_y', 1, 1,'LowerBound',-220,'UpperBound',220); % 1x1
+        theta_z = optimvar('theta_z', 1, 1,'LowerBound',-220,'UpperBound',220); % 1x1
         T = optimvar('T', 1, 3,'LowerBound',-0.5,'UpperBound',0.5);
         prob = optimproblem;
         f = fcn2optimexpr(@cost4Points, theta_x, theta_y, theta_z, T, X, Y, intrinsic);
         prob.Objective = f;
         noise = (rand([1,6]) - 0.5) * 2; % -1 to 1
         if i==1
-            x0.theta_x = opt(1);
-            x0.theta_y = opt(2) ;
-            x0.theta_z = opt(3);
-            x0.T = [0 0 0];
-        elseif i==2
-            x0.theta_x = 82.0122;
-            x0.theta_y = -0.0192 ;
-            x0.theta_z = 87.7953;
-            x0.T = [0.0228
-                   -0.2070
-                   -0.0783];
+            x0.theta_x = opt_rpy_init(1);
+            x0.theta_y = opt_rpy_init(2) ;
+            x0.theta_z = opt_rpy_init(3);
+            x0.T = opt_T_init;
         else
-            x0.theta_x = opt(1) + noise(1) * 10;
-            x0.theta_y = opt(2) + noise(2) * 10;
-            x0.theta_z = opt(3) + noise(3) * 10;
-            x0.T = [0 0 0] + noise(4:6) * 0.1;
+            x0.theta_x = opt_rpy_init(1) + noise(1) * 10;
+            x0.theta_y = opt_rpy_init(2) + noise(2) * 10;
+            x0.theta_z = opt_rpy_init(3) + noise(3) * 10;
+            x0.T = opt_T_init + noise(4:6) * 0.1;
         end
         
         options = optimoptions('fmincon', 'MaxIter',5e2, 'TolX', 1e-12, 'Display','off', 'FunctionTolerance', 1e-8, 'MaxFunctionEvaluations', 3e4);

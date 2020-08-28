@@ -56,9 +56,12 @@ if nargin < 4
     ExpNmbr=1;
 end
 
-opt.H_TL.rpy_init = [45 2 3];
-opt.H_TL.T_init = [2, 0, 0];
-opt.H_TL.H_init = eye(4);
+%opt.H_TL.rpy_init = [45 2 3];
+%opt.H_TL.T_init = [2, 0, 0];
+%opt.H_TL.H_init = eye(4);
+'L1 cost to ind edges has these initial values:'
+opt.H_TL.rpy_init
+opt.H_TL.T_init
 opt.H_TL.method = "Constraint Customize"; 
 opt.H_TL.UseCentroid = 1;
 

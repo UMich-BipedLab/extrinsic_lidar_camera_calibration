@@ -29,252 +29,222 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function [BagData, TestData] = getBagData()
+function [BagData, TestData] = getBagData_rsl()
+  
+  % Choose alphasense camera:
+  cam0 = 1;
+  cam1 = 0;
 
-    TestData(1).bagfile = "EECS3.bag";
-    TestData(1).pc_file = "velodyne_points-EECS3--2019-09-06-06-19.mat";
+  if cam0
 
-    TestData(2).bagfile = "verification2-45.bag";
-    TestData(2).pc_file = "velodyne_points-verification2--2019-09-03-23-02.mat";
-    
-    TestData(3).bagfile = "verification3-45.bag";
-    TestData(3).pc_file = "velodyne_points-verification3--2019-09-03-23-03.mat";
-    
-    TestData(4).bagfile = "grove2.bag";
-    TestData(4).pc_file = "velodyne_points-grove2--2019-09-06-06-20.mat";
-    
-    TestData(5).bagfile = "verification5-45.bag";
-    TestData(5).pc_file = "velodyne_points-verification5--2019-09-03-23-03.mat";
-    
-    TestData(6).bagfile = "outdoor6-notag.bag";
-    TestData(6).pc_file = "velodyne_points-outdoor6-NoTag--2019-09-06-10-31.mat";
-    
-    TestData(7).bagfile = "outdoor4.bag";
-    TestData(7).pc_file = "velodyne_points-outdoor4--2019-09-04-18-16.mat";
-    
-    TestData(8).bagfile = "outdoor5.bag";
-    TestData(8).pc_file = "velodyne_points-outdoor5--2019-09-04-18-20.mat";
-    
+
+    % Test Data:
+    TestData(1).bagfile = "position4_undistorted_2020-08-04-11-34-58.bag";
+    TestData(1).pc_file = "point_cloud-full-pcl-pos4-final--2020-08-03-11-16.mat";
+
 
     %%% tag size: largest -> smallest 
     %%% parameter for dataset
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % 3Tags-OldLiDAR.bag dataset
+    % position1:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    BagData(1).bagfile = "3Tags-OldLiDAR.bag";
-    BagData(1).num_tag = 3;
-    BagData(1).lidar_target(1).pc_file = 'velodyne_points-3Tags-OldLiDAR-largest--2019-09-03-08-26.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(1).lidar_target(1).tag_size = 0.8051;
-    BagData(1).lidar_target(2).pc_file = 'velodyne_points-3Tags-OldLiDAR-medium--2019-09-02-20-53.mat'; %% payload
-    BagData(1).lidar_target(2).tag_size = 0.225;
-    BagData(1).lidar_target(3).pc_file = 'velodyne_points-3Tags-OldLiDAR-small--2019-09-02-20-47.mat'; %% payload
-    BagData(1).lidar_target(3).tag_size = 0.158;
-    BagData(1).lidar_full_scan = "velodyne_points-3Tags-full-pc--2019-09-01-02-25.mat";
-    BagData(1).camera_target(1).corners = [526, 447, 569, 490;
-                                           261, 297, 341, 379;
-                                           1, 1, 1, 1];                         
-    BagData(1).camera_target(2).corners = [269, 237, 284, 251;
-                                           296, 313, 326, 343;
-                                           1, 1, 1, 1];
-    BagData(1).camera_target(3).corners = [394, 349, 413, 367;
-                                           249, 267, 294, 312;
-                                           1, 1, 1, 1]; 
-
+    BagData(1).bagfile = "position1_undistorted_2020-08-04-11-27-56.bag";
+    BagData(1).num_tag = 2;
+    BagData(1).lidar_target(1).pc_file = 'point_cloud-small-position1-final--2020-07-29-16-11.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(1).lidar_target(1).tag_size = 0.5;
+    BagData(1).camera_target(1).corners = [721, 642, 795, 709;
+                                250, 317, 326, 394;
+                                1, 1, 1, 1];
+    BagData(1).lidar_target(2).pc_file = 'point_cloud-large-pos1-final--2020-08-05-09-58.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(1).lidar_target(2).tag_size = 0.75;
+    BagData(1).camera_target(2).corners = [501, 424, 561, 487;
+                                247, 306, 320, 380;
+                                1, 1, 1, 1];       
+    BagData(1).lidar_full_scan = "point_cloud-full-pcl-position1--2020-07-29-13-37.mat";
+                  
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab2-closer.bag dataset
+    % position2:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(2).bagfile = "lab2-closer.bag";
+    BagData(2).bagfile = "position2_undistorted_2020-08-04-11-30-53.bag";
     BagData(2).num_tag = 2;
-    BagData(2).lidar_target(1).pc_file = 'velodyne_points-lab2-closer-big--2019-09-05-21-51.mat'; %% payload: lab2-closer.bag
-    BagData(2).lidar_target(1).tag_size = 0.8051;
-    BagData(2).lidar_target(2).pc_file = 'velodyne_points-lab2-closer-small--2019-09-05-21-53.mat'; %% payload
-    BagData(2).lidar_target(2).tag_size = 0.158;
-    BagData(2).lidar_full_scan = "velodyne_points-lab2-full-pc--2019-09-05-23-20.mat";
-    BagData(2).camera_target(1).corners = [340, 263, 406, 316;
-                                236, 313, 341, 417;
-                                1, 1, 1, 1];    
-    BagData(2).camera_target(2).corners = [197, 153, 220, 176;
-                                 250, 273, 292, 315;
-                                 1, 1, 1, 1];
+    BagData(2).lidar_target(1).pc_file = 'point_cloud-small-position2-final--2020-07-30-16-22.mat'; %% payload: lab2-closer.bag
+    BagData(2).lidar_target(1).tag_size = 0.5;
+    BagData(2).camera_target(1).corners = [459, 387, 514, 449;
+                                246, 298, 311, 364;
+                                1, 1, 1, 1];
+    BagData(2).lidar_target(2).pc_file = 'point_cloud-large-pos2-final--2020-08-05-10-34.mat'; %% payload: lab2-closer.bag
+    BagData(2).lidar_target(2).tag_size = 0.75;
+    BagData(2).camera_target(2).corners = [669, 600, 725, 656;
+                                239, 296, 307, 363;
+                                1, 1, 1, 1];  
+    BagData(2).lidar_full_scan = "point_cloud-full-pcl-position2--2020-07-30-17-34.mat";
+ 
+
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % position3:
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
+    BagData(3).bagfile = "position3_undistorted_2020-08-04-11-33-07.bag"; 
+    BagData(3).num_tag = 2;
+    BagData(3).lidar_target(1).pc_file = 'point_cloud-small-pos3-final--2020-08-03-09-04.mat'; %% somewhat rotated, there are some pole points on the top, might need better filtering!
+    BagData(3).lidar_target(1).tag_size = 0.5;
+    BagData(3).camera_target(1).corners = [453, 383, 506, 443;
+                                    248, 299, 311, 363;
+                                    1, 1, 1, 1];
+    BagData(3).lidar_target(2).pc_file = 'point_cloud-large-pos3-final--2020-08-03-09-34.mat'; %% Also rotated, but well filtered, just not determined enough
+    BagData(3).lidar_target(2).tag_size = 0.75;
+    BagData(3).camera_target(2).corners = [784, 718, 846, 772;
+                                    251, 304, 311, 364;
+                                    1, 1, 1, 1];    
+    BagData(3).lidar_full_scan = "point_cloud-full-pcl-pos3-final--2020-08-03-11-17.mat";
 
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab_angled.bag dataset
+    % position4
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(3).bagfile = "lab_angled.bag"; 
-    BagData(3).num_tag = 1;
-    BagData(3).lidar_target(1).pc_file = 'velodyne_points-lab_angled-big--2019-09-05-21-25.mat'; %% payload: lab_angled.bag
-    BagData(3).lidar_target(1).tag_size = 0.8051;
-    BagData(3).lidar_full_scan = "velodyne_points-lab_angled-full-pc--2019-09-06-14-03.mat";
-    BagData(3).camera_target(1).corners = [340, 263, 406, 316;
-										236, 313, 341, 417;
-										1, 1, 1, 1];    
-
-
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab3-closer-cleaner.bag dataset
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(4).bagfile = "lab3-closer-cleaner.bag";
+    BagData(4).bagfile = "position4_undistorted_2020-08-04-11-34-58.bag";
     BagData(4).num_tag = 2;
-    BagData(4).lidar_target(1).pc_file = 'velodyne_points-lab3-closer-big--2019-09-06-08-38.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(4).lidar_target(1).tag_size = 0.8051;
-    BagData(4).lidar_target(2).pc_file = 'velodyne_points-lab3-closer-small--2019-09-06-08-35.mat'; %% payload
-    BagData(4).lidar_target(2).tag_size = 0.158;
-    BagData(4).lidar_full_scan = "velodyne_points-lab3-closer-full-scan--2019-09-06-08-28.mat";
-    BagData(4).camera_target(2).corners = [200, 157, 223, 180;
-                                    251, 275, 292, 315;
+    BagData(4).lidar_target(1).pc_file = 'point_cloud-small-pos4-final--2020-08-03-10-38.mat'; %% Wrong rotation
+    BagData(4).lidar_target(1).tag_size = 0.5;
+    BagData(4).camera_target(1).corners = [479, 414, 532, 467;
+                                    304, 356, 367, 420;
                                     1, 1, 1, 1];
-    BagData(4).camera_target(1).corners = [333, 248, 418, 328;
-                                   239, 322, 328, 416;
-                                   1, 1, 1, 1];    
+    BagData(4).lidar_target(2).pc_file = 'point_cloud-large-pos4-final--2020-08-03-10-04.mat'; %% Too flat on the top!
+    BagData(4).lidar_target(2).tag_size = 0.75;
+    BagData(4).camera_target(2).corners = [719, 629, 800, 702;
+                                    261, 334, 351, 423;
+                                    1, 1, 1, 1];
+    BagData(4).lidar_full_scan = "point_cloud-full-pcl-pos4-final--2020-08-03-11-16.mat";
 
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab4-closer-cleaner.bag dataset
+    % position5:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(5).bagfile = "lab4-closer-cleaner.bag";
+    BagData(5).bagfile = "position5_undistorted_2020-08-04-11-37-21.bag";
     BagData(5).num_tag = 2;
-    BagData(5).lidar_target(1).pc_file = 'velodyne_points-lab4-closer-big--2019-09-06-13-49.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(5).lidar_target(1).tag_size = 0.8051;
-    BagData(5).lidar_target(2).pc_file = 'velodyne_points-lab4-closer-small--2019-09-06-13-38.mat'; %% payload
-    BagData(5).lidar_target(2).tag_size = 0.158;
-    BagData(5).lidar_full_scan = "velodyne_points-lab4-closer-full-pc--2019-09-06-13-34.mat";
-    BagData(5).camera_target(2).corners = [250, 206, 272, 230;
-                                   257, 281, 299, 323;
+    BagData(5).lidar_target(1).pc_file = 'point_cloud-small-pos5-final--2020-08-03-11-12.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(5).lidar_target(1).tag_size = 0.5;
+    BagData(5).camera_target(1).corners = [750, 662, 845, 738;
+                                   297, 370, 390, 460;
                                    1, 1, 1, 1];
-    BagData(5).camera_target(1).corners = [473, 349, 575, 435;
-                                   227, 314, 361, 448;
-                                   1, 1, 1, 1];    
+    BagData(5).lidar_target(2).pc_file = 'point_cloud-large-pos5-final--2020-08-03-10-56.mat'; %% payload
+    BagData(5).lidar_target(2).tag_size = 0.75;
+    BagData(5).camera_target(2).corners = [450, 334, 529, 427;
+                                   247, 325, 346, 428;
+                                   1, 1, 1, 1];
+    BagData(5).lidar_full_scan = "point_cloud-full-pcl-pos5-final--2020-08-03-11-13.mat";
+
+  end
+
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%
+  % CAM 1 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  if cam1
+
+
+    % Test Data:
+    TestData(1).bagfile = "position3_undistorted_2020-08-06-13-26-12.bag";
+    TestData(1).pc_file = "point_cloud-full-pcl-pos3-final--2020-08-03-11-17.mat";
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab5-closer-cleaner.bag dataset
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(6).bagfile = "lab5-closer-cleaner.bag";
-    BagData(6).num_tag = 2;
-    BagData(6).lidar_target(1).pc_file = 'velodyne_points-lab5-closer-bag--2019-09-06-14-27.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(6).lidar_target(1).tag_size = 0.8051;
-    BagData(6).lidar_target(2).pc_file = 'velodyne_points-lab5-closer-small--2019-09-06-14-23.mat'; %% payload
-    BagData(6).lidar_target(2).tag_size = 0.158;
-    BagData(6).lidar_full_scan = "velodyne_points-lab5-closer-full-pc--2019-09-06-14-15.mat";
-    BagData(6).camera_target(2).corners = [145, 105, 165, 127;
-                                   263, 284, 299, 321;
-                                   1, 1, 1, 1];
-    BagData(6).camera_target(1).corners = [398, 281, 490, 367;
-                                   233, 318, 349, 440;
-                                   1, 1, 1, 1];     
-
+    % position1:
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    BagData(1).bagfile = "position1_undistorted_2020-08-06-13-11-20.bag";
+    BagData(1).num_tag = 2;
+    BagData(1).lidar_target(1).pc_file = 'point_cloud-small-position1-final--2020-07-29-16-11.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(1).lidar_target(1).tag_size = 0.5;
+    BagData(1).camera_target(1).corners = [681, 604, 757, 673;
+                                252, 321, 328, 397;
+                                1, 1, 1, 1];
+    BagData(1).lidar_target(2).pc_file = 'point_cloud-large-pos1-final--2020-08-05-09-58.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(1).lidar_target(2).tag_size = 0.75;
+    BagData(1).camera_target(2).corners = [471, 395, 532, 459;
+                                253, 314, 326, 387;
+                                1, 1, 1, 1];       
+    BagData(1).lidar_full_scan = "point_cloud-full-pcl-position1--2020-07-29-13-37.mat";
+                  
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab6-closer-cleaner.bag dataset
+    % position2:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(7).bagfile = "lab6-closer-cleaner.bag";
-    BagData(7).num_tag = 2;
-    BagData(7).lidar_target(1).pc_file = 'velodyne_points-lab6-closer-big--2019-09-06-15-09.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(7).lidar_target(1).tag_size = 0.8051;
-    BagData(7).lidar_target(2).pc_file = 'velodyne_points-lab6-closer-small--2019-09-06-15-05.mat'; %% payload
-    BagData(7).lidar_target(2).tag_size = 0.158;
-    BagData(7).lidar_full_scan = "velodyne_points-lab6-closer-full-pc--2019-09-06-14-15.mat";
-    BagData(7).camera_target(2).corners = [230, 191, 251, 213;
-                                   260, 282, 298, 321;
-                                   1, 1, 1, 1];
-    BagData(7).camera_target(1).corners = [409, 314, 476, 372;
-                                   246, 309, 349, 411;
-                                   1, 1, 1, 1];    
-
+    BagData(2).bagfile = "position2_undistorted_2020-08-06-13-25-33.bag";
+    BagData(2).num_tag = 2;
+    BagData(2).lidar_target(1).pc_file = 'point_cloud-small-position2-final--2020-07-30-16-22.mat'; %% payload: lab2-closer.bag
+    BagData(2).lidar_target(1).tag_size = 0.5;
+    BagData(2).camera_target(1).corners = [423, 351, 481, 415;
+                                252, 306, 317, 371;
+                                1, 1, 1, 1];
+    BagData(2).lidar_target(2).pc_file = 'point_cloud-large-pos2-final--2020-08-05-10-34.mat'; %% payload: lab2-closer.bag
+    BagData(2).lidar_target(2).tag_size = 0.75;
+    BagData(2).camera_target(2).corners = [636, 568, 695, 625;
+                                242, 300, 310, 368;
+                                1, 1, 1, 1];  
+    BagData(2).lidar_full_scan = "point_cloud-full-pcl-position2--2020-07-30-17-34.mat";
+ 
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab7-closer-cleaner.bag dataset
+    % position3:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(8).bagfile = "lab7-closer-cleaner.bag";
-    BagData(8).num_tag = 2;
-    BagData(8).lidar_target(1).pc_file = 'velodyne_points-lab7-closer-big--2019-09-06-15-14.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(8).lidar_target(1).tag_size = 0.8051;
-    BagData(8).lidar_target(2).pc_file = 'velodyne_points-lab7-closer-small--2019-09-06-15-12.mat'; %% payload
-    BagData(8).lidar_target(2).tag_size = 0.158;
-    BagData(8).lidar_full_scan = "velodyne_points-lab7-closer-full-pc--2019-09-06-14-16.mat";
-    BagData(8).camera_target(2).corners = [509, 479, 529, 498;
-                                   274, 292, 305, 323;
-                                   1, 1, 1, 1];
-    BagData(8).camera_target(1).corners = [178, 79, 230, 137;
-                                   253, 307, 342, 402;
-                                   1, 1, 1, 1];    
-
-
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % lab8-closer-cleaner.bag dataset
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(9).bagfile = "lab8-closer-cleaner.bag";
-    BagData(9).num_tag = 2;
-    BagData(9).lidar_target(1).pc_file = 'velodyne_points-lab8-closer-big--2019-09-06-15-28.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(9).lidar_target(1).tag_size = 0.8051;
-    BagData(9).lidar_target(2).pc_file = 'velodyne_points-lab8-closer-small--2019-09-06-15-17.mat'; %% payload
-    BagData(9).lidar_target(2).tag_size = 0.158;
-    BagData(9).lidar_full_scan = "velodyne_points-lab8-closer-full-pc--2019-09-06-14-16.mat";
-    BagData(9).camera_target(2).corners = [264, 226, 284, 246;
-                                   258, 279, 296, 316;
-                                   1, 1, 1, 1];
-    BagData(9).camera_target(1).corners = [465, 372, 545, 445;
-                                   222, 293, 318, 389;
-                                   1, 1, 1, 1];    
-
-
-
-    BagData(10).bagfile = "wavefield3-tag.bag";
-    BagData(10).num_tag = 2;
-    BagData(10).lidar_target(1).pc_file = 'velodyne_points-wavefield3-big--2019-09-07-19-04.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(10).lidar_target(1).tag_size = 0.8051;
-    BagData(10).lidar_target(2).pc_file = 'velodyne_points-wavefield3-small--2019-09-07-20-18.mat'; %% payload
-    BagData(10).lidar_target(2).tag_size = 0.158;
-    BagData(10).lidar_full_scan = "velodyne_points-wavefield3-full-pc--2019-09-07-19-00.mat";
-    BagData(10).camera_target(2).corners = [517, 489, 540, 512;
-                                    268, 289, 297, 319;
+    BagData(3).bagfile = "position3_undistorted_2020-08-06-13-26-12.bag"; 
+    BagData(3).num_tag = 2;
+    BagData(3).lidar_target(1).pc_file = 'point_cloud-small-pos3-final--2020-08-03-09-04.mat'; %% payload: lab_angled.bag
+    BagData(3).lidar_target(1).tag_size = 0.5;
+    BagData(3).camera_target(1).corners = [418, 348, 474, 409;
+                                    255, 307, 318, 370;
                                     1, 1, 1, 1];
-    BagData(10).camera_target(1).corners = [255, 215, 282, 243;
-                                    284, 313, 328, 359;
+    BagData(3).lidar_target(2).pc_file = 'point_cloud-large-pos3-final--2020-08-03-09-34.mat'; %% payload: lab_angled.bag
+    BagData(3).lidar_target(2).tag_size = 0.75;
+    BagData(3).camera_target(2).corners = [755, 690, 819, 745;
+                                    251, 307, 312, 366;
                                     1, 1, 1, 1];    
+    BagData(3).lidar_full_scan = "point_cloud-full-pcl-pos3-final--2020-08-03-11-17.mat";
 
 
 
-    BagData(11).bagfile = "wavefield5-tag.bag";
-    BagData(11).num_tag = 2;
-    BagData(11).lidar_target(1).pc_file = 'velodyne_points-wavefield5-big--2019-09-07-20-24.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(11).lidar_target(1).tag_size = 0.8051;
-    BagData(11).lidar_target(2).pc_file = 'velodyne_points-wavefield5-small--2019-09-07-19-17.mat'; %% payload
-    BagData(11).lidar_target(2).tag_size = 0.158;
-    BagData(11).lidar_full_scan = "velodyne_points-wavefield5-full-pc--2019-09-07-19-01.mat";
-    BagData(11).camera_target(2).corners = [483, 443, 517, 474;
-                                    236, 273, 280, 317;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % position4
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
+    BagData(4).bagfile = "position4_undistorted_2020-08-06-13-27-02.bag";
+    BagData(4).num_tag = 2;
+    BagData(4).lidar_target(1).pc_file = 'point_cloud-small-pos4-final--2020-08-03-10-38.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(4).lidar_target(1).tag_size = 0.5;
+    BagData(4).camera_target(1).corners = [445, 380, 499, 435;
+                                    310, 364, 373, 427;
                                     1, 1, 1, 1];
-    BagData(11).camera_target(1).corners = [168, 110, 204, 152;
-                                    268, 317, 329, 383;
-                                    1, 1, 1, 1];    
+    BagData(4).lidar_target(2).pc_file = 'point_cloud-large-pos4-final--2020-08-03-10-04.mat'; %% payload
+    BagData(4).lidar_target(2).tag_size = 0.75;
+    BagData(4).camera_target(2).corners = [685, 597, 768, 671;
+                                    263, 338, 352, 426;
+                                    1, 1, 1, 1];
+    BagData(4).lidar_full_scan = "point_cloud-full-pcl-pos4-final--2020-08-03-11-16.mat";
 
-                                
-    BagData(12).bagfile = "wavefield_3tag_closer.bag";
-    BagData(12).num_tag = 3;
-    BagData(12).lidar_target(1).pc_file = 'velodyne_points-wavefield_3tag_closer_big--2019-10-02-12-09.mat'; %% payload: 3Tags-OldLiDAR.bag
-    BagData(12).lidar_target(1).tag_size = 1.216;
-    BagData(12).lidar_target(2).pc_file = 'velodyne_points-wavefield_3tag_closer_medium--2019-10-02-12-06.mat'; %% payload
-    BagData(12).lidar_target(2).tag_size = 0.8051;
-    BagData(12).lidar_target(3).pc_file = 'velodyne_points-wavefield_3tag_closer_small--2019-10-02-12-02.mat'; %% payload
-    BagData(12).lidar_target(3).tag_size = 0.158;
-    BagData(12).lidar_full_scan = "velodyne_points-wavefield5-full-pc--2019-09-07-19-01.mat";
-    BagData(12).camera_target(1).corners = [486, 443, 507, 464;
-                                            312, 328, 356, 372;
-                                            1, 1, 1, 1];
-    BagData(12).camera_target(2).corners = [226, 194, 232, 198;
-                                            309, 326, 349, 365;
-                                            1, 1, 1, 1];
-    BagData(12).camera_target(3).corners = [371, 348, 380, 358;
-                                            355, 364, 378, 388;
-                                            1, 1, 1, 1];                            
-end
+
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % position5:
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
+    BagData(5).bagfile = "position5_undistorted_2020-08-06-13-27-43.bag";
+    BagData(5).num_tag = 2;
+    BagData(5).lidar_target(1).pc_file = 'point_cloud-small-pos5-final--2020-08-03-11-12.mat'; %% payload: 3Tags-OldLiDAR.bag
+    BagData(5).lidar_target(1).tag_size = 0.5;
+    BagData(5).camera_target(1).corners = [709, 624, 804, 700;
+                                   298, 374, 391, 464;
+                                   1, 1, 1, 1];
+    BagData(5).lidar_target(2).pc_file = 'point_cloud-large-pos5-final--2020-08-03-10-56.mat'; %% payload
+    BagData(5).lidar_target(2).tag_size = 0.75;
+    BagData(5).camera_target(2).corners = [414, 298, 496, 394;
+                                   254, 334, 352, 436;
+                                   1, 1, 1, 1];
+    BagData(5).lidar_full_scan = "point_cloud-full-pcl-pos5-final--2020-08-03-11-13.mat";
+
+  end

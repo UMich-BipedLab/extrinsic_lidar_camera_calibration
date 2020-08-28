@@ -33,18 +33,22 @@ clc, clear
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% camera parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-intrinsic_matrix = [616.3681640625, 0.0,            319.93463134765625;
-                    0.0,            616.7451171875, 243.6385955810547;
+intrinsic_matrix = [351.3009289812843, 0.0,            580.5;  % cam0
+                    0.0,            351.3009289812843, 335.0;  % cam0
                     0.0, 0.0, 1.0];
 opt.intrinsic_matrix = intrinsic_matrix;            
-distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 
-% Initial guess of LiDAR to camera transformation
-opt.H_LC.rpy_init = [90 0 90];
+% Initial guess Lidar to Camera
+global_H_LC.rpy_init = [90.0 0.0 -180.0];
+global_H_LC.T_init = [0.0314 -0.1 0.0838];
+
+% Initial guess Tag to Lidar
+global_H_TL.rpy_init = [2 -48 3];
+global_H_TL.T_init = [0, -3, 0];
 
 % train data id from getBagData.m
-trained_ids = [5,8,9,11]; % 
-skip_indices = [1, 2, 3, 7, 12]; %% skip non-standard 
+trained_ids = [3, 4, 5]; % 
+skip_indices = [1]; %% skip non-standard
 
 % validate the calibration result if one has validation dataset(s)
 % (Yes:1; No: 0)
@@ -64,7 +68,6 @@ path.load_all_vertices = "ALL_LiDAR_vertices/";
 path.bag_file_path = "bagfiles/";
 path.mat_file_path = "LiDARTag_data/";
 path.event_name = '';
-
 
 
 %=========================================================================%
@@ -156,17 +159,18 @@ opts.calibration_method = "4 points";
 path.save_name = "RSS2020";
 diary Debug % save terminal outputs
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% show figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 show_image_refinement = 0;
-show_pnp_numerical_result = 0; % show numerical results
+show_pnp_numerical_result = 0;
 show_lidar_target = 0;
-% show.lidar_target_optimization = 1;
+show.lidar_target_optimization = 0;
 show_camera_target = 0;
-show_training_results = 0; % 1
-show_validation_results = 0; %1 
-show_testing_results = 0; %1
+show_training_results = 0;
+show_validation_results = 1; 
+show_testing_results = 1;
 show_baseline_results = 0;
 
 
@@ -201,12 +205,15 @@ opts.correspondance_per_pose = 4; % 4 correspondance on a target
 %%% optimization parameters
 %   H_TL: optimization for LiDAR target to ideal frame to get corners
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-opt.H_TL.rpy_init = [45 2 3];
-opt.H_TL.T_init = [2, 0, 0];
+opt.H_TL.rpy_init = global_H_TL.rpy_init;
+opt.H_TL.T_init = global_H_TL.T_init;
 opt.H_TL.H_init = eye(4);
-opt.H_TL.method = "Constraint Customize"; 
-opt.H_TL.UseCentroid = 1;
+opt.H_TL.method = "GICP-SE3"; 
+opt.H_TL.UseCentroid = 0;
 
+% Set H_LC initial guess
+opt.H_LC.rpy_init = global_H_LC.rpy_init;
+opt.H_LC.T_init = global_H_LC.T_init;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% training, validation and testing datasets
@@ -224,7 +231,6 @@ bag_testing_list = [TestData(:).bagfile];
 test_pc_mat_list = [TestData(:).pc_file];
 opts.num_training = length(trained_ids); 
 opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.num_training;    
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -526,10 +532,10 @@ if ~(skip == 2)
             disp('---------------------')
             disp('SNR ...')
             disp('---------------------')
-%             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
+%             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, opt.H_LC.T_init, ...
 %                                                                     X_square_no_refinement, Y_train, ...
 %                                                                     intrinsic_matrix, display);
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost, SNR_final, SNR_All] = optimize4Points(opt.H_LC.rpy_init,...
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost, SNR_final, SNR_All] = optimize4Points(opt.H_LC.rpy_init, opt.H_LC.T_init, ...
                                                                     X_square_no_refinement, Y_train, ...
                                                                    intrinsic_matrix, show_pnp_numerical_result);                                                    
             calibration(1).H_SNR = SNR_H_LC;
@@ -541,7 +547,7 @@ if ~(skip == 2)
             disp('---------------------')
             disp('NSNR ...')
             disp('---------------------')
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, NSNR_final, NSNR_All] = optimize4Points(opt.H_LC.rpy_init, ...
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, NSNR_final, NSNR_All] = optimize4Points(opt.H_LC.rpy_init, opt.H_LC.T_init, ...
                                                                        X_base_line, Y_base_line, ... 
                                                                        intrinsic_matrix, show_pnp_numerical_result); 
             calibration(1).H_NSNR = NSNR_H_LC;
