@@ -50,6 +50,7 @@ global_H_TL.T_init = [0, -3, 0];
 
 % Camera topic name (rectified images)
 camera_topic_name = "/output/image";
+image_is_color = 0; % 1: undistorted color image input, 0: undistorted_grayscale_image_input
 
 % train data id from getBagData.m
 trained_ids = [2, 3, 5]; % 
@@ -148,7 +149,7 @@ debug = 0;
 %                    how many scans accumulated to optimize one LiDARTag pose
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 base_line.optimized_method = 1;
-base_line.edge_method = 3;
+base_line.edge_method = 3;  % Currently only method 3 is in working condition
 base_line.more_tags = 1;
 base_line.show_results = 0;
 base_line.L1_cleanup = 0;
@@ -245,7 +246,7 @@ opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.nu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp("Refining corners of camera targets ...")
-BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement, camera_topic_name);
+BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement, camera_topic_name, image_is_color);
 
 % create figure handles
 training_img_fig_handles = createFigHandle(opts.num_training, "training_img");
