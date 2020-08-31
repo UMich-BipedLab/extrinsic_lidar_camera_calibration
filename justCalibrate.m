@@ -30,8 +30,10 @@
 %}
 
 clc, clear
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% camera parameters
+%%% Camera Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 intrinsic_matrix = [351.3009289812843, 0.0,            580.5;  % cam0
                     0.0,            351.3009289812843, 335.0;  % cam0
@@ -60,11 +62,14 @@ skip_indices = [1]; %% skip non-standard
 % need targets in the scene. 
 validation_flag = 1; 
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Data path Parameters
+
 %%% path.load_dir: directory of saved files
-%%% load_all_vertices: pre-calculated vertices (pick the top-5 consistent)
-%%% bag_file_path: bag files of images 
-%%% mat_file_path: mat files of extracted lidar target's point clouds
+%%% load_all_vertices: pre-calculated vertices from prior results with good vertice extraction (only used if opts.optimizeAllCorners := 0; and opts.refineAllCorners := 0; -> just tuning optimization and relying on saved vertices)
+%%% bag_file_path: bag files of images (Needs to contain at least the undistorted images, bagile names as specified in getBagData.m)
+%%% mat_file_path: mat files of extracted lidar target's point clouds (point_clouds of each target as well as whole point_cloud, as specified in getBagData.m)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 path.load_dir = "/";
 path.load_all_vertices = "preextracted_tag_vertices/cam0/";
@@ -73,9 +78,6 @@ path.mat_file_path = "matfiles/";
 path.event_name = '';
 
 
-%=========================================================================%
-%============== You usually do not need change setting below =============%
-%=========================================================================%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% parameters of user setting
 %%% optimizeAllCorners (0/1): <default: 1>
@@ -115,6 +117,9 @@ skip = 0;
 debug = 0;
 
 
+%=========================================================================%
+%============== You usually do not need change setting below =============%
+%=========================================================================%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Baseline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -159,7 +164,7 @@ opts.calibration_method = "4 points";
 % opts.calibration_method = "IoU";
 
 % save into results into folder         
-path.save_name = "RSS2020";
+path.save_name = "results";
 diary Debug % save terminal outputs
 
 
@@ -217,6 +222,7 @@ opt.H_TL.UseCentroid = 0;
 % Set H_LC initial guess
 opt.H_LC.rpy_init = global_H_LC.rpy_init;
 opt.H_LC.T_init = global_H_LC.T_init;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% training, validation and testing datasets
