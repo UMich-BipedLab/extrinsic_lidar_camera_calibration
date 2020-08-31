@@ -40,14 +40,17 @@ opt.intrinsic_matrix = intrinsic_matrix;
 
 % Initial guess Lidar to Camera
 global_H_LC.rpy_init = [90.0 0.0 -180.0];
-global_H_LC.T_init = [0.0314 -0.1 0.0838];
+global_H_LC.T_init = [0.0314, -0.1, 0.0838];
 
 % Initial guess Tag to Lidar
 global_H_TL.rpy_init = [2 -48 3];
 global_H_TL.T_init = [0, -3, 0];
 
+% Camera topic name (rectified images)
+camera_topic_name = "/output/image";
+
 % train data id from getBagData.m
-trained_ids = [3, 4, 5]; % 
+trained_ids = [2, 3, 5]; % 
 skip_indices = [1]; %% skip non-standard
 
 % validate the calibration result if one has validation dataset(s)
@@ -63,10 +66,10 @@ validation_flag = 1;
 %%% bag_file_path: bag files of images 
 %%% mat_file_path: mat files of extracted lidar target's point clouds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-path.load_dir = "load_data/";
-path.load_all_vertices = "ALL_LiDAR_vertices/";
-path.bag_file_path = "bagfiles/";
-path.mat_file_path = "LiDARTag_data/";
+path.load_dir = "/";
+path.load_all_vertices = "preextracted_tag_vertices/cam0/";
+path.bag_file_path = "bagfiles/cam0_undistorted/";
+path.mat_file_path = "matfiles/";
 path.event_name = '';
 
 
@@ -236,7 +239,7 @@ opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.nu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp("Refining corners of camera targets ...")
-BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement);
+BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement, camera_topic_name);
 
 % create figure handles
 training_img_fig_handles = createFigHandle(opts.num_training, "training_img");
@@ -322,7 +325,7 @@ end
 % loading training image
 for k = 1:opts.num_training
     current_index = bag_training_indices(k);
-    loadBagImg(training_img_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
+    loadBagImg(training_img_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean", camera_topic_name);
     
     if skip==1 || skip == 2
         for j = 1:BagData(current_index).num_tag
@@ -340,7 +343,7 @@ end
 if validation_flag
     for k = 1:opts.num_validation
         current_index = bag_validation_indices(k);
-        loadBagImg(validation_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
+        loadBagImg(validation_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean", camera_topic_name);
 
         if skip==1 || skip == 2
             for j = 1:BagData(current_index).num_tag
@@ -433,13 +436,13 @@ if skip == 0
                 pc_iter = opts.num_scan*(i-1) + 1;
                 if base_line.optimized_method == 1
                     [X_corners_big, edges_big] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                     path.mat_file_path, i, 1, pc_iter);
+                                                                     path.mat_file_path, i, 1, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                      Y_corner_big = [BagData(current_index).camera_target(1).corners];
                     if BagData(current_index).num_tag > 1
                         if base_line.more_tags == 1
                             for j = 2:BagData(current_index).num_tag
                                 [corners_tmp, edges_tmp] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                               path.mat_file_path, i, j, pc_iter);
+                                                                               path.mat_file_path, i, j, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                                 X_corners_big = [X_corners_big, corners_tmp];
                                 edges_big = [edges_big, edges_tmp];
                                 Y_corner_big = [Y_corner_big, BagData(current_index).camera_target(j).corners];
@@ -490,12 +493,12 @@ if skip == 0
                 BagData(current_index).baseline = [];
                 if base_line.optimized_method == 1
                     [~, ~, BagData(current_index)] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                         path.mat_file_path, i, 1, pc_iter);
+                                                                         path.mat_file_path, i, 1, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                     if BagData(current_index).num_tag > 1
                         if base_line.more_tags == 1
                             for j = 2:BagData(current_index).num_tag
                                 [~, ~, BagData(current_index)] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                                     path.mat_file_path, i, j, pc_iter);
+                                                                                     path.mat_file_path, i, j, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                             end
                         end
                     end
@@ -667,7 +670,7 @@ end
 % load testing images and testing pc mat
 testing_set_pc = loadTestingMatFiles(path.mat_file_path, test_pc_mat_list);
 for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), path.bag_file_path, bag_testing_list(i), "not display", "Not clean"); 
+    loadBagImg(testing_fig_handles(i), path.bag_file_path, bag_testing_list(i), "not display", "Not clean", camera_topic_name); 
     projectBackToImage(testing_fig_handles(i), SNR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", show_testing_results, "Not-Clean");
 end
 drawnow

@@ -29,7 +29,7 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function [BagData, TestData] = getBagData_rsl()
+function [BagData, TestData] = getBagData()
   
   % Choose alphasense camera:
   cam0 = 1;

@@ -29,10 +29,9 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function [U, center, LEupper, LElower, REupper, RElower, PayLoadClean, PayLoadClean2D, flag_changed] = L1CostToFindEdges(base_line, pnts, d, ExpNmbr)
+function [U, center, LEupper, LElower, REupper, RElower, PayLoadClean, PayLoadClean2D, flag_changed] = L1CostToFindEdges(base_line, pnts, d, H_TL_rpy_init, H_TL_T_init, ExpNmbr)
 
 % pnts is the pioint cloud structure that Bruce builds up
-
 
 %U as in [U,S,V] to determined the normal to the pointcloud. 
 %U(:,3) is the normal to the point cloud
@@ -52,16 +51,13 @@ function [U, center, LEupper, LElower, REupper, RElower, PayLoadClean, PayLoadCl
 %Rings is the list of rings in LE and RE
 %RingsAvg is the list of rings in LEavg REavg
 %
-if nargin < 4
+if nargin < 6
     ExpNmbr=1;
 end
 
-%opt.H_TL.rpy_init = [45 2 3];
-%opt.H_TL.T_init = [2, 0, 0];
-%opt.H_TL.H_init = eye(4);
-'L1 cost to ind edges has these initial values:'
-opt.H_TL.rpy_init
-opt.H_TL.T_init
+opt.H_TL.rpy_init = H_TL_rpy_init;
+opt.H_TL.T_init = H_TL_T_init;
+opt.H_TL.H_init = eye(4);
 opt.H_TL.method = "Constraint Customize"; 
 opt.H_TL.UseCentroid = 1;
 
@@ -89,9 +85,14 @@ for i1=1:n1
     payload=payload(:,RingNotZero);
     [~,n3]=size(payload);
     payload=[payload;i1*ones(1,n3);ExpNmbr*ones(1,n3)];
-    if min(payload(1,:)) > 0
-        PayLoad=[PayLoad,payload];
-    end
+
+    % START modified
+    %if min(payload(1,:)) > 0
+    %    PayLoad=[PayLoad,payload];
+    %end
+    
+    PayLoad=[PayLoad,payload];
+    % END modified
     
     % payload(1,:) : x
     % payload(2,:) : y

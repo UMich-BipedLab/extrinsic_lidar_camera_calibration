@@ -29,7 +29,7 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function image_data = refineImageRightCorner(opts, image_data, display)
+function image_data = refineImageRightCorner(opts, image_data, display, camera_topic_name)
     extend_fac = 2;
 %     corner_array = [1 1 2 3
 %                     2 3 4 4];
@@ -38,7 +38,7 @@ function image_data = refineImageRightCorner(opts, image_data, display)
 
     bagselect = rosbag(image_data.path + image_data.name);
     bagselect2 = select(bagselect,'Time',...
-        [bagselect.StartTime bagselect.StartTime + 1],'Topic','/camera/color/image_raw');
+        [bagselect.StartTime bagselect.StartTime + 1],'Topic', camera_topic_name);
     allMsgs = readMessages(bagselect2);
     [img,~] = readImage(allMsgs{1});
     gray = rgb2gray(img);
