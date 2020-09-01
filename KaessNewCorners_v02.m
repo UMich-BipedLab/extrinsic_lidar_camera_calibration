@@ -28,7 +28,7 @@
  * AUTHOR: Bruce JK Huang (bjhuang[at]umich.edu)
  * WEBSITE: https://www.brucerobot.com/
 %}
-function [cross_big_3d, edges, bag]= KaessNewCorners_v02(base_line, bag, path, scan_number, which_tag, pc_iter)
+function [cross_big_3d, edges, bag]= KaessNewCorners_v02(base_line, bag, path, scan_number, which_tag, pc_iter, H_TL_rpy_init, H_TL_T_init)
     pc = load(string(path) + string(bag.lidar_target(which_tag).pc_file)); 
     pnts = pc.point_cloud; % [scan, point, [X, Y, X, I, R]]
     ransac_threshold = 0.02;
@@ -41,7 +41,7 @@ function [cross_big_3d, edges, bag]= KaessNewCorners_v02(base_line, bag, path, s
     elseif base_line.edge_method == 2
         [U, center, LEupper, LElower, REupper, RElower, ~, ~, flag_changed] = clickedToFindEdges(base_line, pnts, d);
     elseif base_line.edge_method == 3
-        [U, center, LEupper, LElower, REupper, RElower, ~, ~, flag_changed] = L1CostToFindEdges(base_line, pnts, d);
+        [U, center, LEupper, LElower, REupper, RElower, ~, ~, flag_changed] = L1CostToFindEdges(base_line, pnts, d, H_TL_rpy_init, H_TL_T_init);
     end
     
     [nL1,nL2,nL3]=size(LEupper);

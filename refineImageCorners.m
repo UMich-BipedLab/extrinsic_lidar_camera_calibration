@@ -29,8 +29,8 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function BagData = refineImageCorners(path, BagData, skip_indices, display, t_clean)
-    if nargin > 4
+function BagData = refineImageCorners(path, BagData, skip_indices, display, camera_topic_name, image_is_color, t_clean)
+    if nargin > 6
         clean = t_clean;
     else
         clean = 1;
@@ -46,10 +46,11 @@ function BagData = refineImageCorners(path, BagData, skip_indices, display, t_cl
         file = BagData(k).bagfile;
         bagselect = rosbag(path + file);
         bagselect2 = select(bagselect,'Time',...
-            [bagselect.StartTime bagselect.StartTime + 1],'Topic','/camera/color/image_raw');
+            [bagselect.StartTime bagselect.StartTime + 1],'Topic', camera_topic_name);
         allMsgs = readMessages(bagselect2);
         [img,~] = readImage(allMsgs{1});
-        gray = rgb2gray(img);
+        if (image_is_color)
+            gray = rgb2gray(img);
         BW = edge(gray, 'Canny', [0.04]);
         
         if checkDisplay(display)

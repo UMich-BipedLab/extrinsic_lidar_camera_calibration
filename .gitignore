@@ -2,7 +2,6 @@
 *.mat
 *.m~
 *.txt
-*.py
 *.sh
 *result*
 ctags

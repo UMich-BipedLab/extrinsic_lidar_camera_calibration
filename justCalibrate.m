@@ -30,21 +30,31 @@
 %}
 
 clc, clear
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% camera parameters
+%%% Camera Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-intrinsic_matrix = [616.3681640625, 0.0,            319.93463134765625;
-                    0.0,            616.7451171875, 243.6385955810547;
+intrinsic_matrix = [351.3009289812843, 0.0,            580.5;  % cam0
+                    0.0,            351.3009289812843, 335.0;  % cam0
                     0.0, 0.0, 1.0];
 opt.intrinsic_matrix = intrinsic_matrix;            
-distortion_param = [0.099769, -0.240277, 0.002463, 0.000497, 0.000000];
 
-% Initial guess of LiDAR to camera transformation
-opt.H_LC.rpy_init = [90 0 90];
+% Initial guess Lidar to Camera
+global_H_LC.rpy_init = [90.0 0.0 -180.0];
+global_H_LC.T_init = [0.0314, -0.1, 0.0838];
+
+% Initial guess Tag to Lidar
+global_H_TL.rpy_init = [2 -48 3];
+global_H_TL.T_init = [0, -3, 0];
+
+% Camera topic name (rectified images)
+camera_topic_name = "/output/image";
+image_is_color = 0; % 1: undistorted color image input, 0: undistorted_grayscale_image_input
 
 % train data id from getBagData.m
-trained_ids = [5,8,9,11]; % 
-skip_indices = [1, 2, 3, 7, 12]; %% skip non-standard 
+trained_ids = [2, 3, 5]; % 
+skip_indices = [1]; %% skip non-standard
 
 % validate the calibration result if one has validation dataset(s)
 % (Yes:1; No: 0)
@@ -53,23 +63,22 @@ skip_indices = [1, 2, 3, 7, 12]; %% skip non-standard
 % need targets in the scene. 
 validation_flag = 1; 
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Data path Parameters
+
 %%% path.load_dir: directory of saved files
-%%% load_all_vertices: pre-calculated vertices (pick the top-5 consistent)
-%%% bag_file_path: bag files of images 
-%%% mat_file_path: mat files of extracted lidar target's point clouds
+%%% load_all_vertices: pre-calculated vertices from prior results with good vertice extraction (only used if opts.optimizeAllCorners := 0; and opts.refineAllCorners := 0; -> just tuning optimization and relying on saved vertices)
+%%% bag_file_path: bag files of images (Needs to contain at least the undistorted images, bagile names as specified in getBagData.m)
+%%% mat_file_path: mat files of extracted lidar target's point clouds (point_clouds of each target as well as whole point_cloud, as specified in getBagData.m)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-path.load_dir = "load_data/";
-path.load_all_vertices = "ALL_LiDAR_vertices/";
-path.bag_file_path = "bagfiles/";
-path.mat_file_path = "LiDARTag_data/";
+path.load_dir = "/";
+path.load_all_vertices = "preextracted_tag_vertices/cam0/";
+path.bag_file_path = "bagfiles/cam0_undistorted/";
+path.mat_file_path = "matfiles/";
 path.event_name = '';
 
 
-
-%=========================================================================%
-%============== You usually do not need change setting below =============%
-%=========================================================================%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% parameters of user setting
 %%% optimizeAllCorners (0/1): <default: 1>
@@ -109,6 +118,9 @@ skip = 0;
 debug = 0;
 
 
+%=========================================================================%
+%============== You usually do not need change setting below =============%
+%=========================================================================%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Baseline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,7 +149,7 @@ debug = 0;
 %                    how many scans accumulated to optimize one LiDARTag pose
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 base_line.optimized_method = 1;
-base_line.edge_method = 3;
+base_line.edge_method = 3;  % Currently only method 3 is in working condition
 base_line.more_tags = 1;
 base_line.show_results = 0;
 base_line.L1_cleanup = 0;
@@ -153,20 +165,21 @@ opts.calibration_method = "4 points";
 % opts.calibration_method = "IoU";
 
 % save into results into folder         
-path.save_name = "RSS2020";
+path.save_name = "results";
 diary Debug % save terminal outputs
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% show figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 show_image_refinement = 0;
-show_pnp_numerical_result = 0; % show numerical results
+show_pnp_numerical_result = 0;
 show_lidar_target = 0;
-% show.lidar_target_optimization = 1;
+show.lidar_target_optimization = 0;
 show_camera_target = 0;
-show_training_results = 0; % 1
-show_validation_results = 0; %1 
-show_testing_results = 0; %1
+show_training_results = 0;
+show_validation_results = 1; 
+show_testing_results = 1;
 show_baseline_results = 0;
 
 
@@ -201,11 +214,15 @@ opts.correspondance_per_pose = 4; % 4 correspondance on a target
 %%% optimization parameters
 %   H_TL: optimization for LiDAR target to ideal frame to get corners
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-opt.H_TL.rpy_init = [45 2 3];
-opt.H_TL.T_init = [2, 0, 0];
+opt.H_TL.rpy_init = global_H_TL.rpy_init;
+opt.H_TL.T_init = global_H_TL.T_init;
 opt.H_TL.H_init = eye(4);
-opt.H_TL.method = "Constraint Customize"; 
-opt.H_TL.UseCentroid = 1;
+opt.H_TL.method = "GICP-SE3"; 
+opt.H_TL.UseCentroid = 0;
+
+% Set H_LC initial guess
+opt.H_LC.rpy_init = global_H_LC.rpy_init;
+opt.H_LC.T_init = global_H_LC.T_init;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -226,11 +243,10 @@ opts.num_training = length(trained_ids);
 opts.num_validation = length(bag_with_tag_list) - length(skip_indices) - opts.num_training;    
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp("Refining corners of camera targets ...")
-BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement);
+BagData = refineImageCorners(path.bag_file_path, BagData, skip_indices, show_image_refinement, camera_topic_name, image_is_color);
 
 % create figure handles
 training_img_fig_handles = createFigHandle(opts.num_training, "training_img");
@@ -316,7 +332,7 @@ end
 % loading training image
 for k = 1:opts.num_training
     current_index = bag_training_indices(k);
-    loadBagImg(training_img_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
+    loadBagImg(training_img_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean", camera_topic_name);
     
     if skip==1 || skip == 2
         for j = 1:BagData(current_index).num_tag
@@ -334,7 +350,7 @@ end
 if validation_flag
     for k = 1:opts.num_validation
         current_index = bag_validation_indices(k);
-        loadBagImg(validation_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean");
+        loadBagImg(validation_fig_handles(k), path.bag_file_path, bag_with_tag_list(current_index), "not display", "not clean", camera_topic_name);
 
         if skip==1 || skip == 2
             for j = 1:BagData(current_index).num_tag
@@ -427,13 +443,13 @@ if skip == 0
                 pc_iter = opts.num_scan*(i-1) + 1;
                 if base_line.optimized_method == 1
                     [X_corners_big, edges_big] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                     path.mat_file_path, i, 1, pc_iter);
+                                                                     path.mat_file_path, i, 1, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                      Y_corner_big = [BagData(current_index).camera_target(1).corners];
                     if BagData(current_index).num_tag > 1
                         if base_line.more_tags == 1
                             for j = 2:BagData(current_index).num_tag
                                 [corners_tmp, edges_tmp] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                               path.mat_file_path, i, j, pc_iter);
+                                                                               path.mat_file_path, i, j, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                                 X_corners_big = [X_corners_big, corners_tmp];
                                 edges_big = [edges_big, edges_tmp];
                                 Y_corner_big = [Y_corner_big, BagData(current_index).camera_target(j).corners];
@@ -484,12 +500,12 @@ if skip == 0
                 BagData(current_index).baseline = [];
                 if base_line.optimized_method == 1
                     [~, ~, BagData(current_index)] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                         path.mat_file_path, i, 1, pc_iter);
+                                                                         path.mat_file_path, i, 1, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                     if BagData(current_index).num_tag > 1
                         if base_line.more_tags == 1
                             for j = 2:BagData(current_index).num_tag
                                 [~, ~, BagData(current_index)] = KaessNewCorners_v02(base_line, BagData(current_index), ...
-                                                                                     path.mat_file_path, i, j, pc_iter);
+                                                                                     path.mat_file_path, i, j, pc_iter, opt.H_TL.rpy_init, opt.H_TL.T_init);
                             end
                         end
                     end
@@ -526,10 +542,10 @@ if ~(skip == 2)
             disp('---------------------')
             disp('SNR ...')
             disp('---------------------')
-%             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init,...
+%             [SNR_H_LC, SNR_P, SNR_opt_total_cost] = optimize4Points(opt.H_LC.rpy_init, opt.H_LC.T_init, ...
 %                                                                     X_square_no_refinement, Y_train, ...
 %                                                                     intrinsic_matrix, display);
-            [SNR_H_LC, SNR_P, SNR_opt_total_cost, SNR_final, SNR_All] = optimize4Points(opt.H_LC.rpy_init,...
+            [SNR_H_LC, SNR_P, SNR_opt_total_cost, SNR_final, SNR_All] = optimize4Points(opt.H_LC.rpy_init, opt.H_LC.T_init, ...
                                                                     X_square_no_refinement, Y_train, ...
                                                                    intrinsic_matrix, show_pnp_numerical_result);                                                    
             calibration(1).H_SNR = SNR_H_LC;
@@ -541,7 +557,7 @@ if ~(skip == 2)
             disp('---------------------')
             disp('NSNR ...')
             disp('---------------------')
-            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, NSNR_final, NSNR_All] = optimize4Points(opt.H_LC.rpy_init, ...
+            [NSNR_H_LC, NSNR_P, NSNR_opt_total_cost, NSNR_final, NSNR_All] = optimize4Points(opt.H_LC.rpy_init, opt.H_LC.T_init, ...
                                                                        X_base_line, Y_base_line, ... 
                                                                        intrinsic_matrix, show_pnp_numerical_result); 
             calibration(1).H_NSNR = NSNR_H_LC;
@@ -661,7 +677,7 @@ end
 % load testing images and testing pc mat
 testing_set_pc = loadTestingMatFiles(path.mat_file_path, test_pc_mat_list);
 for i = 1: size(bag_testing_list, 2)
-    loadBagImg(testing_fig_handles(i), path.bag_file_path, bag_testing_list(i), "not display", "Not clean"); 
+    loadBagImg(testing_fig_handles(i), path.bag_file_path, bag_testing_list(i), "not display", "Not clean", camera_topic_name); 
     projectBackToImage(testing_fig_handles(i), SNR_P, testing_set_pc(i).mat_pc, 3, 'g.', "testing", show_testing_results, "Not-Clean");
 end
 drawnow
