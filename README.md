@@ -151,6 +151,20 @@ This funciton returns two data structure: TestData and BagData.
   - camera_target
     - corners: corner coordinates of the camera targets
 
+**[Additional Tools for Data preparation]**
+- [bag2mat.py] There is the script for converting point cloud data to mat format and extract the LIDAR tags (i.e. the subset of points in the pointcloud that correspond to one of the targets in the scene).
+  - usage: '$ python bag2mat.py <bagfile_path> <event_name>' (event name will be part of the output file name)
+  - if parameter 'extracted' is 0 then the whole input pointcloud is converted to mat
+  - if extracted == 1 then cuboids can be defined in function 'readPointsandSave' to extract points that belong to one of the tags
+  - Make sure to set appropriate axis limits for the visualalization
+
+- [bag2opencvCorners.py] There is a script for extracting the camera_target, i.e. the corner coordinates of the camera targets. 
+  - usage '$ python bag2opencvCorners.py <bagfile_path> <undistorted_image_topic_name>'
+  - It will open the first image of the bagfile (assuming the sensor will not be moved) with opencv.
+  - Hovering the mouse cursor on top of the image will display its coordinates in pixel values (for entering them in getBagData).
+  - Note that these are initial guesses and will be optimized (with default settings using canny edge detection and ransac).
+  - Make sure to use the undistorted camera images, there is no undistortion performed.
+
 # Qualitative results
 For the method GL_1-R trained on S_1, the LiDAR point cloud has been projected into the image plane for the other data sets and marked in green. The red circles highlight various poles, door edges, desk legs, monitors, and sidewalk curbs where the quality of the alignment can be best judged. The reader may find other areas of interest. Enlarge in your browser for best viewing. 
 

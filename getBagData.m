@@ -39,7 +39,7 @@ function [BagData, TestData] = getBagData()
 
 
     % Test Data:
-    TestData(1).bagfile = "position4_undistorted_2020-08-04-11-34-58.bag";
+    TestData(1).bagfile = "position4_undistorted_cam0_2020-08-04-11-34-58.bag";
     TestData(1).pc_file = "point_cloud-full-pcl-pos4-final--2020-08-03-11-16.mat";
 
 
@@ -48,7 +48,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position1:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    BagData(1).bagfile = "position1_undistorted_2020-08-04-11-27-56.bag";
+    BagData(1).bagfile = "position1_undistorted_cam0_2020-08-04-11-27-56.bag";
     BagData(1).num_tag = 2;
     BagData(1).lidar_target(1).pc_file = 'point_cloud-small-position1-final--2020-07-29-16-11.mat'; %% payload: 3Tags-OldLiDAR.bag
     BagData(1).lidar_target(1).tag_size = 0.5;
@@ -67,7 +67,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position2:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(2).bagfile = "position2_undistorted_2020-08-04-11-30-53.bag";
+    BagData(2).bagfile = "position2_undistorted_cam0_2020-08-04-11-30-53.bag";
     BagData(2).num_tag = 2;
     BagData(2).lidar_target(1).pc_file = 'point_cloud-small-position2-final--2020-07-30-16-22.mat'; %% payload: lab2-closer.bag
     BagData(2).lidar_target(1).tag_size = 0.5;
@@ -86,7 +86,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position3:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(3).bagfile = "position3_undistorted_2020-08-04-11-33-07.bag"; 
+    BagData(3).bagfile = "position3_undistorted_cam0_2020-08-04-11-33-07.bag"; 
     BagData(3).num_tag = 2;
     BagData(3).lidar_target(1).pc_file = 'point_cloud-small-pos3-final--2020-08-03-09-04.mat'; %% somewhat rotated, there are some pole points on the top, might need better filtering!
     BagData(3).lidar_target(1).tag_size = 0.5;
@@ -105,7 +105,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position4
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(4).bagfile = "position4_undistorted_2020-08-04-11-34-58.bag";
+    BagData(4).bagfile = "position4_undistorted_cam0_2020-08-04-11-34-58.bag";
     BagData(4).num_tag = 2;
     BagData(4).lidar_target(1).pc_file = 'point_cloud-small-pos4-final--2020-08-03-10-38.mat'; %% Wrong rotation
     BagData(4).lidar_target(1).tag_size = 0.5;
@@ -124,7 +124,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position5:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(5).bagfile = "position5_undistorted_2020-08-04-11-37-21.bag";
+    BagData(5).bagfile = "position5_undistorted_cam0_2020-08-04-11-37-21.bag";
     BagData(5).num_tag = 2;
     BagData(5).lidar_target(1).pc_file = 'point_cloud-small-pos5-final--2020-08-03-11-12.mat'; %% payload: 3Tags-OldLiDAR.bag
     BagData(5).lidar_target(1).tag_size = 0.5;
@@ -150,14 +150,14 @@ function [BagData, TestData] = getBagData()
 
 
     % Test Data:
-    TestData(1).bagfile = "position3_undistorted_2020-08-06-13-26-12.bag";
+    TestData(1).bagfile = "position3_undistorted_cam1_2020-08-06-13-26-12.bag";
     TestData(1).pc_file = "point_cloud-full-pcl-pos3-final--2020-08-03-11-17.mat";
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position1:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    BagData(1).bagfile = "position1_undistorted_2020-08-06-13-11-20.bag";
+    BagData(1).bagfile = "position1_undistorted_cam1_2020-08-06-13-11-20.bag";
     BagData(1).num_tag = 2;
     BagData(1).lidar_target(1).pc_file = 'point_cloud-small-position1-final--2020-07-29-16-11.mat'; %% payload: 3Tags-OldLiDAR.bag
     BagData(1).lidar_target(1).tag_size = 0.5;
@@ -176,7 +176,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position2:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(2).bagfile = "position2_undistorted_2020-08-06-13-25-33.bag";
+    BagData(2).bagfile = "position2_undistorted_cam1_2020-08-06-13-25-33.bag";
     BagData(2).num_tag = 2;
     BagData(2).lidar_target(1).pc_file = 'point_cloud-small-position2-final--2020-07-30-16-22.mat'; %% payload: lab2-closer.bag
     BagData(2).lidar_target(1).tag_size = 0.5;
@@ -195,7 +195,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position3:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(3).bagfile = "position3_undistorted_2020-08-06-13-26-12.bag"; 
+    BagData(3).bagfile = "position3_undistorted_cam1_2020-08-06-13-26-12.bag"; 
     BagData(3).num_tag = 2;
     BagData(3).lidar_target(1).pc_file = 'point_cloud-small-pos3-final--2020-08-03-09-04.mat'; %% payload: lab_angled.bag
     BagData(3).lidar_target(1).tag_size = 0.5;
@@ -214,7 +214,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position4
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(4).bagfile = "position4_undistorted_2020-08-06-13-27-02.bag";
+    BagData(4).bagfile = "position4_undistorted_cam1_2020-08-06-13-27-02.bag";
     BagData(4).num_tag = 2;
     BagData(4).lidar_target(1).pc_file = 'point_cloud-small-pos4-final--2020-08-03-10-38.mat'; %% payload: 3Tags-OldLiDAR.bag
     BagData(4).lidar_target(1).tag_size = 0.5;
@@ -233,7 +233,7 @@ function [BagData, TestData] = getBagData()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % position5:
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%         
-    BagData(5).bagfile = "position5_undistorted_2020-08-06-13-27-43.bag";
+    BagData(5).bagfile = "position5_undistorted_cam1_2020-08-06-13-27-43.bag";
     BagData(5).num_tag = 2;
     BagData(5).lidar_target(1).pc_file = 'point_cloud-small-pos5-final--2020-08-03-11-12.mat'; %% payload: 3Tags-OldLiDAR.bag
     BagData(5).lidar_target(1).tag_size = 0.5;
