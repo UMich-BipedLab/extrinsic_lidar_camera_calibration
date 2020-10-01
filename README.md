@@ -96,12 +96,12 @@ note: You can place any number of targets with different size in different datas
   - signal_blocks
 * Dataset: download from [here](https://github.com/UMich-BipedLab/extrinsic_lidar_camera_calibration/tree/master#dataset).
 
-## Dataset 
-Please download optimized LiDAR vertices from [here](https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) and put them into ALL_LiDAR_vertices folder.
+## Dataset  
+Please download optimized LiDAR vertices from [here] (these are precalculated vertices and are used if only extrinsics optimization should be performed) (https://drive.google.com/drive/folders/1DTyG9pcIvXBqgXUxULWUaBT1zxLYmfz7?usp=sharing) and put them into ALL_LiDAR_vertices folder.
 
-Please download point cloud mat files from [here](https://drive.google.com/drive/folders/1rI3vPvPOJ1ib4i1LMqw66habZEf4SwEr?usp=sharing) and put them into LiDARTag_data folder.
+Please download point cloud mat files from [here] (full lidar pointclouds converted to mat format and extracted pointclouds for each target (LIDARTag)) (https://drive.google.com/drive/folders/1rI3vPvPOJ1ib4i1LMqw66habZEf4SwEr?usp=sharing) and put them into LiDARTag_data folder.
 
-Please download bagfiles from [here](https://drive.google.com/drive/folders/1qawEuUBsC2gQJsHejLEuga2nhERKWRa5?usp=sharing) and put them into bagfiles folder.
+Please download bagfiles from [here] (https://drive.google.com/drive/folders/1qawEuUBsC2gQJsHejLEuga2nhERKWRa5?usp=sharing) and put them into bagfiles folder.
 
 
 ## Running
