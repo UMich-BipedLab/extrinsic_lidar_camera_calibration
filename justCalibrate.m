@@ -53,8 +53,8 @@ camera_topic_name = "/output/image";
 image_is_color = 0; % 1: undistorted color image input, 0: undistorted_grayscale_image_input
 
 % train data id from getBagData.m
-trained_ids = [5]; % 
-skip_indices = [1, 2, 3]; %% skip non-standard
+trained_ids = [2, 3, 5]; % 
+skip_indices = [1]; %% skip non-standard
 
 % validate the calibration result if one has validation dataset(s)
 % (Yes:1; No: 0)
