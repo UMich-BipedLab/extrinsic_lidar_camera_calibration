@@ -53,8 +53,8 @@ camera_topic_name = "/output/image";
 image_is_color = 0; % 1: undistorted color image input, 0: undistorted_grayscale_image_input
 
 % train data id from getBagData.m
-trained_ids = [2, 3, 5]; % 
-skip_indices = [1]; %% skip non-standard
+trained_ids = [5]; % 
+skip_indices = [1, 2, 3]; %% skip non-standard
 
 % validate the calibration result if one has validation dataset(s)
 % (Yes:1; No: 0)
@@ -110,8 +110,8 @@ path.event_name = '';
 %%% debug (0/1):  <default: 0>
 %               print more stuff at the end to help debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-opts.optimizeAllCorners = 0;
-opts.refineAllCorners = 0;
+opts.optimizeAllCorners = 1;
+opts.refineAllCorners = 1;
 opts.use_top_consistent_vertices = 0;
 opts.randperm_to_fine_vertices = 0;
 skip = 0; 
@@ -217,7 +217,7 @@ opts.correspondance_per_pose = 4; % 4 correspondance on a target
 opt.H_TL.rpy_init = global_H_TL.rpy_init;
 opt.H_TL.T_init = global_H_TL.T_init;
 opt.H_TL.H_init = eye(4);
-opt.H_TL.method = "GICP-SE3"; 
+opt.H_TL.method = "Constraint Customize"; 
 opt.H_TL.UseCentroid = 0;
 
 % Set H_LC initial guess
@@ -410,7 +410,7 @@ if skip == 0
             for j = 1:BagData(current_index).num_tag
                 fprintf("----Tag %i/%i", j, BagData(current_index).num_tag)
                 % optimize lidar targets corners
-                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(j, opt, ...
+                [BagData(current_index), H_LT] = getAll4CornersReturnHLT(j, opt, opt.H_LC.T_init, ...
                                                      path, BagData(current_index), ...
                                                      opts);
                 % draw camera targets 
@@ -470,7 +470,7 @@ if skip == 0
             Y_validation_tmp = [];
 
             for j = 1:BagData(current_index).num_tag
-                [BagData(current_index), ~] = getAll4CornersReturnHLT(j, opt, ...
+                [BagData(current_index), ~] = getAll4CornersReturnHLT(j, opt, opt.H_LC.T_init, ...
                                                      path, BagData(current_index), opts);
                 BagData(current_index).camera_target(j).four_corners_line = ...
                                             point2DToLineForDrawing(BagData(current_index).camera_target(j).corners);

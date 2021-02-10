@@ -29,7 +29,7 @@
  * WEBSITE: https://www.brucerobot.com/
 %}
 
-function [bag_data, H_LT] = getAll4CornersReturnHLT(tag_num, opt, path, bag_data, opts)
+function [bag_data, H_LT] = getAll4CornersReturnHLT(tag_num, opt, opt_T_init, path, bag_data, opts)
 % scan_num: scan number of these corner
 % num_scan: how many scans accumulated to get the corners
 % function [LiDARTag, AprilTag, H_LT] = get4CornersReturnHLT(tag_num, opt, mat_file_path, pc_mat_file, bag_file, target_len, pc_iter, num_scan)
@@ -196,7 +196,7 @@ function [bag_data, H_LT] = getAll4CornersReturnHLT(tag_num, opt, path, bag_data
 %                         disp('---------------------')
                         % square with refinement
                         show_pnp_numerical_result = 0;
-                        [SR_H_LC, SR_P, SR_opt_total_cost, SR_final, SR_All] = optimize4Points(opt.H_LC.rpy_init, ...
+                        [SR_H_LC, SR_P, SR_opt_total_cost, SR_final, SR_All] = optimize4Points(opt.H_LC.rpy_init, opt_T_init, ...
                                                                                                X_train, Y_train, ... 
                                                                                                opt.intrinsic_matrix, ...
                                                                                                show_pnp_numerical_result);
